@@ -1,0 +1,228 @@
+@common_path "D:/Portfolio/GameServerProject/Common/PacketDefine.h"
+
+@section LOGIN_SERVER_PACKET
+{
+    @start 100
+    @output_dir "D:/Portfolio/GameServerProject/01_LoginServer/"
+    @output_name "PacketHandler"
+
+    @protocol C_REQ_LOGIN
+    - Login 요청
+    [
+        int64 accountNo
+        Token token
+    ]
+
+    @protocol S_RES_LOGIN
+    - Login 응답
+    [
+        int64   accountNo
+        bool    status
+        Token   token
+    ]
+
+    @protocol C_GET_SERVER_LIST
+    - 서버 목록 요청
+    [
+
+    ]
+
+    @protocol S_GET_SERVER_LIST
+    - 서버 목록 응답
+    [
+        vector<wstring> gameServerIps
+        vector<uint16>  gameServerPorts
+    ]
+}
+
+
+@section CHAT_SERVER_PACKET
+{
+    @start 200
+    @output_dir "D:/Portfolio/GameServerProject/02_ChatServer/"
+    @output_name "PacketHandler"
+}
+
+@section GAME_SERVER_PACKET
+{
+    @start 300
+    @output_dir "D:/Portfolio/GameServerProject/03_GameServer/"
+    @output_name "PacketHandler"
+
+
+    @protocol C_GAME_LOGIN
+    - 게임서버 로그인 요청
+    [
+        uint64  accountId
+        Token   token
+    ]
+
+    @protocol S_GAME_LOGIN
+    - 게임서버 로그인 응답
+    [
+        bool status
+    ]
+
+    @protocol C_GET_CHARACTER_LIST
+    - 캐릭터 목록 요청
+    [
+
+    ]
+
+    @protocol S_GET_CHARACTER_LIST
+    - 캐릭터 목록 응답
+    [
+        vector<Dto_S_GET_CHARACTER_LIST> charaterList
+    ]
+
+    @protocol C_CREATE_CHARACTER
+    - 캐릭터 생성 요청
+    [
+        wstring nickname
+        int32   modelId
+        int32   weaponId
+    ]
+
+    @protocol S_CREATE_CHARACTER
+    - 캐릭터 생성 응답
+    [
+        bool status
+    ]
+
+    @protocol C_GAME_ENTER
+    - 캐릭터 선택후 게임입장
+    [
+        uint64  characterId
+        int32   idx
+    ]
+
+    @protocol S_GAME_ENTER
+    - 게임 입장 응답
+    [
+        uint64  characterId
+        wstring nickname
+        int32   level
+        int32   exp
+        float32   y
+        float32   x
+        int32   hp
+        int32   speed
+        int32   fieldId
+    ]
+
+    @protocol S_SPAWN_CHARACTER
+    - 캐릭터 생성
+    [
+        uint64  playerId
+        wstring nickname
+        int32   level
+        float32   y
+        float32   x
+        int32   hp
+        int32   speed
+        int32   modelId
+        int32   weaponId
+    ]
+
+    @protocol S_DESTROY_CHARACTER
+    - 캐릭터 삭제
+    [
+        uint64 playerId
+    ]
+
+    @protocol C_MOVE
+    - 플레이어 이동
+    [
+        float32 y
+        float32 x
+    ]
+
+    @protocol C_MOVE_STOP
+    - 이동 멈충
+    [
+        float32 y
+        float32 x
+    ]
+
+    @protocol S_MOVE
+    - 다른 플레이어에게 위치 전파
+    [
+        uint64 playerId
+        float32 y
+        float32 x
+    ]
+
+    @protocol S_MOVE_STOP
+    - 멈췄을때 위치 다른 플레이어에게 전파
+    [
+        uint64 playerId
+        float32 y
+        float32 x
+    ]
+
+    @dto
+    [
+        @link S_GET_CHARACTER_LIST
+        (
+            uint64  id
+            wstring nickname
+            int32   level
+            int32   modelId
+            int32   weaponId
+        )
+    ]
+}
+
+
+@server LoginServer
+{
+    @file_name "D:/Portfolio/GameServerProject/01_LoginServer/LoginServer.h"
+    @attach LOGIN_SERVER_PACKET all
+}
+
+@group LoginGroup
+{
+    @file_name "D:/Portfolio/GameServerProject/03_GameServer/LoginGroup.h"
+    @attach GAME_SERVER_PACKET
+    [
+        C_GAME_LOGIN,
+        S_GAME_LOGIN,
+    ]
+}
+
+@group LobbyGroup
+{
+    @file_name "D:/Portfolio/GameServerProject/03_GameServer/LobbyGroup.h"
+    @attach GAME_SERVER_PACKET
+    [
+        C_GET_CHARACTER_LIST,
+        S_GET_CHARACTER_LIST,
+        C_CREATE_CHARACTER,
+        S_CREATE_CHARACTER,
+        C_GAME_ENTER,
+    ]
+}
+
+@group GameGroup_Town
+{
+    @file_name "D:/Portfolio/GameServerProject/03_GameServer/GameGroup_Town.h"
+    @attach GAME_SERVER_PACKET
+    [
+        S_GAME_ENTER,
+        S_SPAWN_CHARACTER,
+        S_DESTROY_CHARACTER,
+        C_MOVE,
+        C_MOVE_STOP,
+        S_MOVE,
+        S_MOVE_STOP,
+    ]
+}
+
+@dependency Token
+{
+    @include "Common/Token.h"
+    @struct
+    [
+        Token,
+    ]
+}

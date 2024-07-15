@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Main">
+      <UniqueIdentifier>{e1517d75-8dba-4d54-9184-b05414d4b18f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Group">
+      <UniqueIdentifier>{870887ee-484f-47d8-ac98-af22aaff1d39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DB">
+      <UniqueIdentifier>{90ac1cfc-127c-4418-ad8f-aa857f8a7acd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Server">
+      <UniqueIdentifier>{42b864cb-0ac5-4e10-8eb0-ce21dfd9590f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game">
+      <UniqueIdentifier>{fa74aedc-e5ae-4e3f-829b-e8384a8a0641}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="GameGroupBase.cpp">
+      <Filter>Group</Filter>
+    </ClCompile>
+    <ClCompile Include="LoginGroup.cpp">
+      <Filter>Group</Filter>
+    </ClCompile>
+    <ClCompile Include="LobbyGroup.cpp">
+      <Filter>Group</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketHandler.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="DBWriter.cpp">
+      <Filter>DB</Filter>
+    </ClCompile>
+    <ClCompile Include="DBJob.cpp">
+      <Filter>DB</Filter>
+    </ClCompile>
+    <ClCompile Include="GameGroup_Town.cpp">
+      <Filter>Group</Filter>
+    </ClCompile>
+    <ClCompile Include="GameServer.cpp">
+      <Filter>Server</Filter>
+    </ClCompile>
+    <ClCompile Include="SqlSession.cpp">
+      <Filter>DB</Filter>
+    </ClCompile>
+    <ClCompile Include="Character.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Map.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="GameGroupBase.h">
+      <Filter>Group</Filter>
+    </ClInclude>
+    <ClInclude Include="LoginGroup.h">
+      <Filter>Group</Filter>
+    </ClInclude>
+    <ClInclude Include="GroupDefine.h">
+      <Filter>Group</Filter>
+    </ClInclude>
+    <ClInclude Include="LobbyGroup.h">
+      <Filter>Group</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketHandler.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="DBWriter.h">
+      <Filter>DB</Filter>
+    </ClInclude>
+    <ClInclude Include="DBJob.h">
+      <Filter>DB</Filter>
+    </ClInclude>
+    <ClInclude Include="GameGroup_Town.h">
+      <Filter>Group</Filter>
+    </ClInclude>
+    <ClInclude Include="GameServer.h">
+      <Filter>Server</Filter>
+    </ClInclude>
+    <ClInclude Include="SqlSession.h">
+      <Filter>DB</Filter>
+    </ClInclude>
+    <ClInclude Include="Character.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Map.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
