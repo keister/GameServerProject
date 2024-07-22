@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mysqlx/xdevapi.h"
+#include <Dense>
 class Player;
 
 class Character
@@ -26,9 +27,12 @@ public:
 
 	void Move(float32 y, float32 x)
 	{
-		_y = y;
-		_x = x;
+		_target = { x, y };
+
 	}
+
+
+	void MoveTowards(float32 maxDistance);
 
 private:
 	uint64	_id;
@@ -37,13 +41,16 @@ private:
 	wstring _nickname;
 	int32	_level;
 	int32	_exp;
-	float32	_y;
-	float32	_x;
 	int32	_hp;
 	int32	_speed;
 	int32	_modelId;
 	int32	_weaponId;
 	int32	_fieldId;
+
+	Eigen::Vector2<float32> _pos;
+	Eigen::Vector2<float32> _target;
+	float32 _rotation;
+
 
 
 public:
@@ -79,12 +86,12 @@ public:
 
 	float32 Y() const
 	{
-		return _y;
+		return _pos.y();
 	}
 
 	float32 X() const
 	{
-		return _x;
+		return _pos.x();
 	}
 
 	int32 Hp() const
@@ -110,5 +117,19 @@ public:
 	int32 FieldId() const
 	{
 		return _fieldId;
+	}
+
+	const Eigen::Vector2<float32>& Target()
+	{
+		return _target;
+	}
+	Eigen::Vector2<float32>& Pos()
+	{
+		return _pos;
+	}
+
+	float32 Rotation()
+	{
+		return _rotation;
 	}
 };

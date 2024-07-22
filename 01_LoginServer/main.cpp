@@ -7,53 +7,6 @@
 #include "Packet.h"
 CrashDump cd;
 
-
-
-class A
-{
-public:
-	virtual ~A() = default;
-
-private:
-	virtual void k() = 0;
-};
-
-class B : public A
-{
-public:
-	~B() override
-	{
-		
-	}
-
-private:
-	virtual void a() = 0;
-
-};
-
-class C : public B
-{
-public:
-	~C() override
-	{}
-
-public:
-	void k() override
-	{
-		cout << "K" << endl;
-	}
-	void a() override
-	{
-		cout << "A" << endl;
-	}
-};
-
-template <typename T> requires is_base_of_v<A, T>
-void foo()
-{
-
-}
-
 int main()
 {
 

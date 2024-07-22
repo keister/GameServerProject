@@ -100,13 +100,12 @@ bool HandlePacket_GameGroup_Town(GameGroup_Town* group, Player& player, Packet& 
 		group->Handle_C_MOVE(player, y, x);
 		break;
 	}
-	case PacketType::C_MOVE_STOP:
+	case PacketType::C_ATTACK:
 	{
-		float32 y;
-		float32 x;
-		pkt >> y >> x;
+		int32 combo;
+		pkt >> combo;
 
-		group->Handle_C_MOVE_STOP(player, y, x);
+		group->Handle_C_ATTACK(player, combo);
 		break;
 	}
 	default:
@@ -151,12 +150,12 @@ Packet& Make_S_GAME_ENTER(const uint64 characterId, const wstring& nickname, con
 
 	return pkt;
 }
-Packet& Make_S_SPAWN_CHARACTER(const uint64 playerId, const wstring& nickname, const int32 level, const float32 y, const float32 x, const int32 hp, const int32 speed, const int32 modelId, const int32 weaponId)
+Packet& Make_S_SPAWN_CHARACTER(const uint64 playerId, const wstring& nickname, const int32 level, const float32 y, const float32 x, const int32 hp, const int32 speed, const int32 modelId, const int32 weaponId, const float32 rotation)
 {
 	Packet& pkt = Packet::Alloc();
 
 	pkt << PacketType::S_SPAWN_CHARACTER;
-	pkt << playerId << nickname << level << y << x << hp << speed << modelId << weaponId;
+	pkt << playerId << nickname << level << y << x << hp << speed << modelId << weaponId << rotation;
 
 	return pkt;
 }
@@ -169,21 +168,30 @@ Packet& Make_S_DESTROY_CHARACTER(const uint64 playerId)
 
 	return pkt;
 }
-Packet& Make_S_MOVE(const uint64 playerId, const float32 y, const float32 x)
+Packet& Make_S_MOVE(const float32 y, const float32 x)
 {
 	Packet& pkt = Packet::Alloc();
 
 	pkt << PacketType::S_MOVE;
+	pkt << y << x;
+
+	return pkt;
+}
+Packet& Make_S_MOVE_OTHER(const uint64 playerId, const float32 y, const float32 x)
+{
+	Packet& pkt = Packet::Alloc();
+
+	pkt << PacketType::S_MOVE_OTHER;
 	pkt << playerId << y << x;
 
 	return pkt;
 }
-Packet& Make_S_MOVE_STOP(const uint64 playerId, const float32 y, const float32 x)
+Packet& Make_S_ATTACK(const uint64 playerId, const int32 combo)
 {
 	Packet& pkt = Packet::Alloc();
 
-	pkt << PacketType::S_MOVE_STOP;
-	pkt << playerId << y << x;
+	pkt << PacketType::S_ATTACK;
+	pkt << playerId << combo;
 
 	return pkt;
 }

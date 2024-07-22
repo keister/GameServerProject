@@ -1,6 +1,9 @@
 #pragma once
 #include <mysqlx/devapi/common.h>
 #include <mysqlx/devapi/row.h>
+#include <Dense>
+
+#include "Character.h"
 class Sector;
 class Character;
 
@@ -19,6 +22,7 @@ public:
 	Character* AddCharacter(mysqlx::Row& queryResult);
 	Character* AddCharacter(const wstring& nickname, int32 modelId, int32 weaponId);
 
+
 public:
 	uint64 sessionId;
 	uint64 id;
@@ -28,5 +32,7 @@ public:
 
 	Character*	curCharacter;
 	Sector*		sector;
+
+
 };
 

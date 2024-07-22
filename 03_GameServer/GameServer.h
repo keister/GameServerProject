@@ -1,7 +1,10 @@
 #pragma once
+#include "GameGroupBase.h"
+#include "GroupDefine.h"
 #include "HeteroServerBase.h"
 
 #include "../Libs/hiredis/CRedisConn.h"
+class GameGroupBase;
 class GameGroup_Town;
 class LoginGroup;
 class LobbyGroup;
@@ -20,6 +23,21 @@ public:
 	void DeletePlayer(Player* player);
 
 	bool GetToken(uint64 accountId, Token& token);
+
+	uint64 GetPlayerCount(Groups group)
+	{
+		return _groups[(int32)group]->GetPlayerCount();
+	}
+
+	uint64 GetFrameCount(Groups group)
+	{
+		return _groups[(int32)group]->GetFrameCount();
+	}
+
+	float32 Get()
+	{
+		return _groups[0]->DeltaTime();
+	}
 
 protected:
 	void OnStart() override;
@@ -40,8 +58,6 @@ private:
 	unordered_map<uint64, Player*> _players;
 	Lock _lock;
 
-	LoginGroup* _loginGroup;
-	LobbyGroup* _lobbyGroup;
-	GameGroup_Town* _gameGroupTown;
+	GameGroupBase* _groups[(int32)Groups::NUM_GROUPS];
 };
 

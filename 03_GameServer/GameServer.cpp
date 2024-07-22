@@ -55,12 +55,13 @@ GameServer::GameServer(const wstring& name)
 {
 	_redis = new RedisSession();
 	_redis->connect("127.0.0.1", 6379);
-	_loginGroup = CreateGroup<LoginGroup>((uint8)Groups::LOGIN);
-	_loginGroup->SetServer(this);
-	_lobbyGroup = CreateGroup<LobbyGroup>((uint8)Groups::LOBBY);
-	_lobbyGroup->SetServer(this);
-	_gameGroupTown = CreateGroup<GameGroup_Town>((uint8)Groups::TOWN);
-	_gameGroupTown->SetServer(this);
+
+	_groups[(uint8)Groups::LOGIN] = CreateGroup<LoginGroup>((uint8)Groups::LOGIN);
+	_groups[(uint8)Groups::LOGIN]->SetServer(this);
+	_groups[(uint8)Groups::LOBBY] = CreateGroup<LobbyGroup>((uint8)Groups::LOBBY);
+	_groups[(uint8)Groups::LOBBY]->SetServer(this);
+	_groups[(uint8)Groups::TOWN] = CreateGroup<GameGroup_Town>((uint8)Groups::TOWN, 20);
+	_groups[(uint8)Groups::TOWN]->SetServer(this);
 }
 
 Player* GameServer::FindPlayer(uint64 sessionId)

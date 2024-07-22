@@ -16,7 +16,7 @@ protected:
 
 	friend bool HandlePacket_GameGroup_Town(GameGroup_Town*, Player&, Packet&);
 	void Handle_C_MOVE(Player& player, float32 y, float32 x);
-	void Handle_C_MOVE_STOP(Player& player, float32 y, float32 x);
+	void Handle_C_ATTACK(Player& player, int32 combo);
 
 	//@@@AutoPackEnd
 

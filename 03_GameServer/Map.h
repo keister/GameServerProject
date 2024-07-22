@@ -1,8 +1,11 @@
 #pragma once
 #include "Packet.h"
 
+class Sector;
 class GroupBase;
 class Player;
+
+using SectorList = list<Sector*>;
 
 enum SectorRange
 {
@@ -21,8 +24,8 @@ enum SectorRange
 	COL_LEFT			= LEFT_UP | LEFT | LEFT_DOWN,
 
 	ROW_UP				= LEFT_UP | UP | RIGHT_UP,
-	ROW_CENTER			= LEFT_DOWN | DOWN | RIGHT_DOWN,
-	ROW_DOWN			= LEFT | CENTER | RIGHT,
+	ROW_CENTER			= LEFT | CENTER | RIGHT,
+	ROW_DOWN			= LEFT_DOWN | DOWN | RIGHT_DOWN,
 
 	COL_LEFT_CENTER		= COL_LEFT | COL_CENTER,
 	COL_RIGHT_CENTER	= COL_RIGHT | COL_CENTER,
@@ -67,6 +70,8 @@ public:
 		return _sectors[y][x].sector;
 	}
 
+	void GetSectors(SectorList& list, int32 y, int32 x, int32 sectorRange);
+
 	Sector* FindSectorByPosition(int32 y, int32 x)
 	{
 		int32 sectorY = y / _sectorHeight;
@@ -79,6 +84,8 @@ public:
 	{
 		return _sectors[sector->pos.y][sector->pos.x].aroundSectors;
 	}
+
+	bool MoveSector(Player& player);
 
 private:
 	void SetAroundSectors(int32 y, int32 x);

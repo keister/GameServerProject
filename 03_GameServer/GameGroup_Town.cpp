@@ -6,6 +6,7 @@
 #include "PacketHandler.h"
 #include "Player.h"
 #include "Map.h"
+#include "Common/PacketDefine.h"
 
 void GameGroup_Town::OnEnter(uint64 sessionId)
 {
@@ -27,7 +28,8 @@ void GameGroup_Town::OnEnter(uint64 sessionId)
 			character->Hp(),
 			character->Speed(),
 			character->ModelId(),
-			character->WeaponId()
+			character->WeaponId(),
+			character->Rotation()
 		), false);
 
 	const vector<Sector*>& around = _map->GetAroundSectors(player->sector);
@@ -52,7 +54,8 @@ void GameGroup_Town::OnEnter(uint64 sessionId)
 				playerCharater->Hp(),
 				playerCharater->Speed(),
 				playerCharater->ModelId(),
-				playerCharater->WeaponId()
+				playerCharater->WeaponId(),
+				character->Rotation()
 			));
 		}
 	}
@@ -85,6 +88,16 @@ void GameGroup_Town::OnRecv(uint64 sessionId, Packet& packet)
 
 void GameGroup_Town::UpdateFrame()
 {
+	for (auto p : _players)
+	{
+		Player* player = p.second;
+
+		Character* character = player->curCharacter;
+
+		character->MoveTowards(DeltaTime());
+
+		_map->MoveSector(*player);
+	}
 }
 
 void GameGroup_Town::Handle_C_MOVE(Player& player, float32 y, float32 x)
@@ -92,116 +105,17 @@ void GameGroup_Town::Handle_C_MOVE(Player& player, float32 y, float32 x)
 	Character* character = player.curCharacter;
 	character->Move(y, x);
 
-	Sector* newSector = _map->FindSectorByPosition(character->Y(), character->X());
-
-	if (newSector != player.sector)
-	{
-		int32 spawnSectorRange = 0;
-		int32 destroySectorRange = 0;
-
-		int32 dy = newSector->pos.y - player.sector->pos.y;
-		int32 dx = newSector->pos.x - player.sector->pos.x;
-
-		if (dx == 1)
-		{
-			spawnSectorRange |= COL_RIGHT;
-			destroySectorRange |= COL_LEFT;
-		}
-		else if (dx == -1)
-		{
-			spawnSectorRange |= COL_LEFT;
-			destroySectorRange |= COL_RIGHT;
-		}
-
-		if (dy == 1)
-		{
-			spawnSectorRange |= ROW_UP;
-			destroySectorRange |= ROW_DOWN;
-		}
-		else if (dy == -1)
-		{
-			spawnSectorRange |= ROW_DOWN;
-			destroySectorRange |= ROW_UP;
-		}
-
-		_map->SendPacket(player, destroySectorRange, Make_S_DESTROY_CHARACTER(player.id), false);
-
-		player.sector = newSector;
-
-		_map->SendPacket(player, spawnSectorRange, 
-			Make_S_SPAWN_CHARACTER(
-				player.id,
-				character->Nickname(),
-				character->Level(),
-				character->Y(), 
-				character->X(),
-				character->Hp(),
-				character->Speed(),
-				character->ModelId(), 
-				character->WeaponId()
-			), false);
-	}
-
-	_map->SendPacket(player, AROUND, Make_S_MOVE(player.id, character->Y(), character->X()), false);
+	SendPacket(player.sessionId, Make_S_MOVE(y, x));
+	_map->SendPacket(player, AROUND, Make_S_MOVE_OTHER(player.id, y, x), false);
 }
 
-void GameGroup_Town::Handle_C_MOVE_STOP(Player& player, float32 y, float32 x)
+void GameGroup_Town::Handle_C_ATTACK(Player& player, int32 combo)
 {
 	Character* character = player.curCharacter;
-	character->Move(y, x);
-
-	Sector* newSector = _map->FindSectorByPosition(character->Y(), character->X());
-
-	if (newSector != player.sector)
-	{
-		int32 spawnSectorRange = 0;
-		int32 destroySectorRange = 0;
-
-		int32 dy = newSector->pos.y - player.sector->pos.y;
-		int32 dx = newSector->pos.x - player.sector->pos.x;
-
-		if (dx == 1)
-		{
-			spawnSectorRange |= COL_RIGHT;
-			destroySectorRange |= COL_LEFT;
-		}
-		else if (dx == -1)
-		{
-			spawnSectorRange |= COL_LEFT;
-			destroySectorRange |= COL_RIGHT;
-		}
-
-		if (dy == 1)
-		{
-			spawnSectorRange |= ROW_UP;
-			destroySectorRange |= ROW_DOWN;
-		}
-		else if (dy == -1)
-		{
-			spawnSectorRange |= ROW_DOWN;
-			destroySectorRange |= ROW_UP;
-		}
-
-		_map->SendPacket(player, destroySectorRange, Make_S_DESTROY_CHARACTER(player.id), false);
-
-		player.sector = newSector;
-
-		_map->SendPacket(player, spawnSectorRange,
-			Make_S_SPAWN_CHARACTER(
-				player.id,
-				character->Nickname(),
-				character->Level(),
-				character->Y(),
-				character->X(),
-				character->Hp(),
-				character->Speed(),
-				character->ModelId(),
-				character->WeaponId()
-			), false);
-	}
-
-	_map->SendPacket(player, AROUND, Make_S_MOVE_STOP(player.id, character->Y(), character->X()), false);
+	character->Move(character->Y(), character->X());
+	_map->SendPacket(player, AROUND, Make_S_ATTACK(player.id, combo), false);
 }
+
 
 GameGroup_Town::GameGroup_Town()
 	: _map(new Map(this, 100, 100, 10, 10))

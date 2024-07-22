@@ -67,7 +67,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)Build\Bin\</OutDir>
     <IntDir>$(SolutionDir)Build\Obj\$(ProjectName)\</IntDir>
-    <IncludePath>$(SolutionDir)Libs\hiredis\include;C:\OpenSSL-Win64\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Libs\hiredis\include;C:\OpenSSL-Win64\include;$(SolutionDir)Libs\Eigen;$(IncludePath)</IncludePath>
     <LibraryPath>C:\OpenSSL-Win64\lib\VC;$(LibraryPath)</LibraryPath>
     <TargetName>GameServer</TargetName>
   </PropertyGroup>

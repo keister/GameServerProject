@@ -7,4 +7,5 @@ enum class Groups
 	LOBBY,
 	FIELD,
 	PVP,
+	NUM_GROUPS,
 };
