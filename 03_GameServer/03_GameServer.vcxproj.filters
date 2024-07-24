@@ -60,6 +60,10 @@
     <ClCompile Include="Map.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="Monster.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="SpawnManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -104,5 +108,10 @@
     <ClInclude Include="Map.h">
       <Filter>Game</Filter>
     </ClInclude>
+    <ClInclude Include="ObjectType.h" />
+    <ClInclude Include="Monster.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="SpawnManager.h" />
   </ItemGroup>
 </Project>

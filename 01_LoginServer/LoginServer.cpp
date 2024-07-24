@@ -25,7 +25,7 @@ LoginServer::LoginServer(const wstring& name)
 	//_monitorThread = RunThread(&LoginServer::func_monitor_thread, this);
 
 	_redis = new RedisSession();
-	_redis->connect("127.0.0.1", 6379);
+	_redis->connect("127.0.0.1", 11772);
 }
 
 LoginServer::~LoginServer()
@@ -67,7 +67,7 @@ void LoginServer::OnRecv(uint64 sessionId, Packet& pkt)
 void LoginServer::Handle_C_REQ_LOGIN(Player& player, int64 accountNo, Token& token)
 {
 	SQLSession& session = get_sql_session();
-	httplib::Client cli("https://localhost:44360");
+	httplib::Client cli("https://procademyserver.iptime.org:11731");
 	cli.enable_server_certificate_verification(false);
 
 	json reqBody;
@@ -79,7 +79,8 @@ void LoginServer::Handle_C_REQ_LOGIN(Player& player, int64 accountNo, Token& tok
 
 	if (res->status != 200)
 	{
-		// return fail
+		wstring st(res->body.begin(), res->body.end());
+		LOG_ERR(L"http", L"%s", st);
 	}
 
 	uint64 accountId = resBody["id"].get<uint64>();
@@ -207,7 +208,7 @@ SQLSession& LoginServer::get_sql_session()
 
 	if (session == nullptr)
 	{
-		session = new SQLSession("localhost", 33060, "root", "as1234", "login");
+		session = new SQLSession("localhost", 11771, "root", "as1234", "login");
 		TlsSetValue(_dbConnectionTlsIndex, session);
 	}
 
@@ -223,7 +224,7 @@ RedisSession& LoginServer::get_redis_session()
 		session = new RedisSession;
 		{
 			WRITE_LOCK(_lockRedis);
-			session->connect("127.0.0.1", 6379);
+			session->connect("127.0.0.1", 11772);
 		}
 		TlsSetValue(_redisConnectionTlsIndex, session);
 	}

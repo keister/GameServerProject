@@ -102,10 +102,10 @@ bool HandlePacket_GameGroup_Town(GameGroup_Town* group, Player& player, Packet& 
 	}
 	case PacketType::C_ATTACK:
 	{
-		int32 combo;
-		pkt >> combo;
+		uint64 objectId;
+		pkt >> objectId;
 
-		group->Handle_C_ATTACK(player, combo);
+		group->Handle_C_ATTACK(player, objectId);
 		break;
 	}
 	default:
@@ -186,12 +186,48 @@ Packet& Make_S_MOVE_OTHER(const uint64 playerId, const float32 y, const float32 
 
 	return pkt;
 }
-Packet& Make_S_ATTACK(const uint64 playerId, const int32 combo)
+Packet& Make_S_ATTACK(const uint64 playerId)
 {
 	Packet& pkt = Packet::Alloc();
 
 	pkt << PacketType::S_ATTACK;
-	pkt << playerId << combo;
+	pkt << playerId;
+
+	return pkt;
+}
+Packet& Make_S_SPAWN_MONSTER(const uint64 id, const uint64 objectId, const int32 hp, const int32 speed, const float32 y, const float32 x)
+{
+	Packet& pkt = Packet::Alloc();
+
+	pkt << PacketType::S_SPAWN_MONSTER;
+	pkt << id << objectId << hp << speed << y << x;
+
+	return pkt;
+}
+Packet& Make_S_DESTROY_OBJECT(const uint8 type, const uint64 id)
+{
+	Packet& pkt = Packet::Alloc();
+
+	pkt << PacketType::S_DESTROY_OBJECT;
+	pkt << type << id;
+
+	return pkt;
+}
+Packet& Make_S_MOVE_OBJECT(const uint8 type, const uint64 id, const float32 y, const float32 x)
+{
+	Packet& pkt = Packet::Alloc();
+
+	pkt << PacketType::S_MOVE_OBJECT;
+	pkt << type << id << y << x;
+
+	return pkt;
+}
+Packet& Make_S_DAMAGE(const uint64 id, const int32 damage)
+{
+	Packet& pkt = Packet::Alloc();
+
+	pkt << PacketType::S_DAMAGE;
+	pkt << id << damage;
 
 	return pkt;
 }

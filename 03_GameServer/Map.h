@@ -1,6 +1,7 @@
 #pragma once
 #include "Packet.h"
 
+class Monster;
 class Sector;
 class GroupBase;
 class Player;
@@ -46,6 +47,7 @@ class Sector
 public:
 	Point pos;
 	unordered_set<Player*> players;
+	unordered_set<Monster*> monsters;
 };
 
 

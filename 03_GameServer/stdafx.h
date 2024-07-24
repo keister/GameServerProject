@@ -7,6 +7,7 @@
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #include "Libs/cpp-httplib/httplib.h"
 #include "Libs/Json/json.hpp"
+#include <Dense>
 using json = nlohmann::json;
 using namespace std;
 

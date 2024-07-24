@@ -156,14 +156,47 @@
     @protocol C_ATTACK
     - 공격 보고
     [
-        int32 combo
+        uint64 objectId
     ]
 
     @protocol S_ATTACK
     - 공격 전파
     [
         uint64 playerId
-        int32 combo
+    ]
+
+    @protocol S_SPAWN_MONSTER
+    - 몬스터 생성
+    [
+        uint64 id
+        uint64 objectId
+        int32 hp
+        int32 speed
+        float32 y
+        float32 x
+    ]
+
+    @protocol S_DESTROY_OBJECT
+    - 오브젝트 파괴
+    [
+        uint8 type
+        uint64 id
+    ]
+
+    @protocol S_MOVE_OBJECT
+    - 오브젝트 이동
+    [
+        uint8 type
+        uint64 id
+        float32 y
+        float32 x
+    ]
+    
+    @protocol S_DAMAGE
+    - 오브젝트 피해
+    [
+        uint64 id
+        int32 damage
     ]
 
     @dto
@@ -222,6 +255,9 @@
         S_MOVE_OTHER,
         C_ATTACK,
         S_ATTACK,
+        S_SPAWN_MONSTER,
+        S_DESTROY_OBJECT,
+        S_MOVE_OBJECT,
     ]
 }
 

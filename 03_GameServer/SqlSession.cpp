@@ -12,7 +12,7 @@ SqlSession& GetSqlSession()
 
 	if (session == nullptr)
 	{
-		session = new SqlSession("localhost", 33060, "root", "as1234", "game");
+		session = new SqlSession("procademyserver.iptime.org", 11771, "remote", "!Khj378400", "game");
 		TlsSetValue(sqlSessionTlsIndex, session);
 	}
 

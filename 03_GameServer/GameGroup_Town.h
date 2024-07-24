@@ -2,6 +2,7 @@
 #include "GameGroupBase.h"
 
 
+class Monster;
 class Map;
 
 class GameGroup_Town : public GameGroupBase
@@ -16,7 +17,7 @@ protected:
 
 	friend bool HandlePacket_GameGroup_Town(GameGroup_Town*, Player&, Packet&);
 	void Handle_C_MOVE(Player& player, float32 y, float32 x);
-	void Handle_C_ATTACK(Player& player, int32 combo);
+	void Handle_C_ATTACK(Player& player, uint64 objectId);
 
 	//@@@AutoPackEnd
 
@@ -27,5 +28,6 @@ public:
 
 private:
 	Map* _map;
+	unordered_map<uint64, Monster*> _monsters;
 };
 

@@ -17,8 +17,10 @@
     <ClCompile Include="LoginGroup.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Map.cpp" />
+    <ClCompile Include="Monster.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="SpawnManager.cpp" />
     <ClCompile Include="SqlSession.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -35,8 +37,11 @@
     <ClInclude Include="LobbyGroup.h" />
     <ClInclude Include="LoginGroup.h" />
     <ClInclude Include="Map.h" />
+    <ClInclude Include="Monster.h" />
+    <ClInclude Include="ObjectType.h" />
     <ClInclude Include="PacketHandler.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="SpawnManager.h" />
     <ClInclude Include="SqlSession.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>

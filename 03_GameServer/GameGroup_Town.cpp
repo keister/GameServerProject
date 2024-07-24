@@ -6,6 +6,8 @@
 #include "PacketHandler.h"
 #include "Player.h"
 #include "Map.h"
+#include "Monster.h"
+#include "ObjectType.h"
 #include "Common/PacketDefine.h"
 
 void GameGroup_Town::OnEnter(uint64 sessionId)
@@ -58,6 +60,18 @@ void GameGroup_Town::OnEnter(uint64 sessionId)
 				character->Rotation()
 			));
 		}
+
+		for (Monster* monsterInSector : sector->monsters)
+		{
+			SendPacket(player->sessionId, Make_S_SPAWN_MONSTER(
+				monsterInSector->id,
+				monsterInSector->objectId,
+				monsterInSector->hp,
+				monsterInSector->speed,
+				monsterInSector->pos.y(),
+				monsterInSector->pos.x())
+			);
+		}
 	}
 
 	player->sector->players.insert(player);
@@ -109,17 +123,33 @@ void GameGroup_Town::Handle_C_MOVE(Player& player, float32 y, float32 x)
 	_map->SendPacket(player, AROUND, Make_S_MOVE_OTHER(player.id, y, x), false);
 }
 
-void GameGroup_Town::Handle_C_ATTACK(Player& player, int32 combo)
+void GameGroup_Town::Handle_C_ATTACK(Player& player, uint64 objectId)
 {
 	Character* character = player.curCharacter;
 	character->Move(character->Y(), character->X());
-	_map->SendPacket(player, AROUND, Make_S_ATTACK(player.id, combo), false);
+	_map->SendPacket(player, AROUND, Make_S_ATTACK(player.id), false);
+
+	Monster* monster = _monsters.find(objectId)->second;
+	monster->hp -= 10;
+	if (monster->hp <= 0)
+	{
+		_map->SendPacket(player, AROUND, Make_S_DESTROY_OBJECT((uint8)ObjectType::MONSTER, monster->id), true);
+	}
+	else
+	{
+		_map->SendPacket(player, AROUND, Make_S_DAMAGE(objectId, 10), true);
+	}
 }
 
 
 GameGroup_Town::GameGroup_Town()
 	: _map(new Map(this, 100, 100, 10, 10))
 {
+	Monster* monster = Monster::AllocMonster(0);
+	_monsters.insert({ monster->id, monster });
+	monster->SetPos(10, 10);
+	monster->SetSector(_map->FindSectorByPosition(monster->pos.y(), monster->pos.x()));
+	monster->sector->monsters.insert(monster);
 }
 
 GameGroup_Town::~GameGroup_Town()

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "mysqlx/xdevapi.h"
-#include <Dense>
 class Player;
 
 class Character

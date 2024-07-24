@@ -40,4 +40,8 @@ extern Packet& Make_S_SPAWN_CHARACTER(const uint64 playerId, const wstring& nick
 extern Packet& Make_S_DESTROY_CHARACTER(const uint64 playerId);
 extern Packet& Make_S_MOVE(const float32 y, const float32 x);
 extern Packet& Make_S_MOVE_OTHER(const uint64 playerId, const float32 y, const float32 x);
-extern Packet& Make_S_ATTACK(const uint64 playerId, const int32 combo);
+extern Packet& Make_S_ATTACK(const uint64 playerId);
+extern Packet& Make_S_SPAWN_MONSTER(const uint64 id, const uint64 objectId, const int32 hp, const int32 speed, const float32 y, const float32 x);
+extern Packet& Make_S_DESTROY_OBJECT(const uint8 type, const uint64 id);
+extern Packet& Make_S_MOVE_OBJECT(const uint8 type, const uint64 id, const float32 y, const float32 x);
+extern Packet& Make_S_DAMAGE(const uint64 id, const int32 damage);

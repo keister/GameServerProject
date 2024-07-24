@@ -1,7 +1,6 @@
 #pragma once
 #include <mysqlx/devapi/common.h>
 #include <mysqlx/devapi/row.h>
-#include <Dense>
 
 #include "Character.h"
 class Sector;
