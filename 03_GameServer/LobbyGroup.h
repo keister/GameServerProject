@@ -4,10 +4,7 @@
 class LobbyGroup : public GameGroupBase
 {
 protected:
-	void OnEnter(uint64 sessionId) override;
-	void OnLeave(uint64 sessionId) override;
 	void OnRecv(uint64 sessionId, Packet& packet) override;
-	void UpdateFrame() override;
 
 
 private:

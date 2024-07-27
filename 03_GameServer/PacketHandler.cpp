@@ -100,12 +100,13 @@ bool HandlePacket_GameGroup_Town(GameGroup_Town* group, Player& player, Packet& 
 		group->Handle_C_MOVE(player, y, x);
 		break;
 	}
-	case PacketType::C_ATTACK:
+	case PacketType::C_SKILL:
 	{
 		uint64 objectId;
-		pkt >> objectId;
+		uint32 skillId;
+		pkt >> objectId >> skillId;
 
-		group->Handle_C_ATTACK(player, objectId);
+		group->Handle_C_SKILL(player, objectId, skillId);
 		break;
 	}
 	default:
@@ -186,12 +187,21 @@ Packet& Make_S_MOVE_OTHER(const uint64 playerId, const float32 y, const float32 
 
 	return pkt;
 }
-Packet& Make_S_ATTACK(const uint64 playerId)
+Packet& Make_S_SKILL(const uint32 skillId, const float32 targetY, const float32 targetX, const float32 posY, const float32 posX)
 {
 	Packet& pkt = Packet::Alloc();
 
-	pkt << PacketType::S_ATTACK;
-	pkt << playerId;
+	pkt << PacketType::S_SKILL;
+	pkt << skillId << targetY << targetX << posY << posX;
+
+	return pkt;
+}
+Packet& Make_S_SKILL_OTHER(const uint64 playerId, const uint32 skillId, const float32 targetY, const float32 targetX, const float32 posY, const float32 posX)
+{
+	Packet& pkt = Packet::Alloc();
+
+	pkt << PacketType::S_SKILL_OTHER;
+	pkt << playerId << skillId << targetY << targetX << posY << posX;
 
 	return pkt;
 }
@@ -222,12 +232,12 @@ Packet& Make_S_MOVE_OBJECT(const uint8 type, const uint64 id, const float32 y, c
 
 	return pkt;
 }
-Packet& Make_S_DAMAGE(const uint64 id, const int32 damage)
+Packet& Make_S_DAMAGE(const uint64 id, const int32 hp)
 {
 	Packet& pkt = Packet::Alloc();
 
 	pkt << PacketType::S_DAMAGE;
-	pkt << id << damage;
+	pkt << id << hp;
 
 	return pkt;
 }

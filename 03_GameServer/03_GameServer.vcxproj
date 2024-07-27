@@ -12,6 +12,7 @@
     <ClCompile Include="DBWriter.cpp" />
     <ClCompile Include="GameGroupBase.cpp" />
     <ClCompile Include="GameGroup_Town.cpp" />
+    <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="GameServer.cpp" />
     <ClCompile Include="LobbyGroup.cpp" />
     <ClCompile Include="LoginGroup.cpp" />
@@ -32,7 +33,9 @@
     <ClInclude Include="DBWriter.h" />
     <ClInclude Include="GameGroupBase.h" />
     <ClInclude Include="GameGroup_Town.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="GameServer.h" />
+    <ClInclude Include="GlobalPool.h" />
     <ClInclude Include="GroupDefine.h" />
     <ClInclude Include="LobbyGroup.h" />
     <ClInclude Include="LoginGroup.h" />
@@ -44,6 +47,7 @@
     <ClInclude Include="SpawnManager.h" />
     <ClInclude Include="SqlSession.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="TimerEvent.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

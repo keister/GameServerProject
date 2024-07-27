@@ -153,16 +153,32 @@
         float32 x
     ]
 
-    @protocol C_ATTACK
+    @protocol C_SKILL
     - 공격 보고
     [
         uint64 objectId
+        uint32 skillId
     ]
 
-    @protocol S_ATTACK
+    @protocol S_SKILL
     - 공격 전파
     [
+        uint32 skillId
+        float32 targetY
+        float32 targetX
+        float32 posY
+        float32 posX
+    ]
+
+    @protocol S_SKILL_OTHER
+    - 다른유저에게 공격 보여주기
+    [
         uint64 playerId
+        uint32 skillId
+        float32 targetY
+        float32 targetX
+        float32 posY
+        float32 posX
     ]
 
     @protocol S_SPAWN_MONSTER
@@ -196,7 +212,7 @@
     - 오브젝트 피해
     [
         uint64 id
-        int32 damage
+        int32 hp
     ]
 
     @dto
@@ -247,17 +263,8 @@
     @file_name "D:/Portfolio/GameServerProject/03_GameServer/GameGroup_Town.h"
     @attach GAME_SERVER_PACKET
     [
-        S_GAME_ENTER,
-        S_SPAWN_CHARACTER,
-        S_DESTROY_CHARACTER,
         C_MOVE,
-        S_MOVE,
-        S_MOVE_OTHER,
-        C_ATTACK,
-        S_ATTACK,
-        S_SPAWN_MONSTER,
-        S_DESTROY_OBJECT,
-        S_MOVE_OBJECT,
+        C_SKILL,
     ]
 }
 

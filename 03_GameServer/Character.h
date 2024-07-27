@@ -27,7 +27,6 @@ public:
 	void Move(float32 y, float32 x)
 	{
 		_target = { x, y };
-
 	}
 
 

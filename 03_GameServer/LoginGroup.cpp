@@ -10,16 +10,6 @@
 #include "Common/Token.h"
 #include "SqlSession.h"
 
-void LoginGroup::OnEnter(uint64 sessionId)
-{
-	Player* player = _server->FindPlayer(sessionId);
-	insert_player(player);
-}
-
-void LoginGroup::OnLeave(uint64 sessionId)
-{
-	delete_player(sessionId);
-}
 
 void LoginGroup::OnRecv(uint64 sessionId, Packet& packet)
 {
@@ -32,9 +22,7 @@ void LoginGroup::OnRecv(uint64 sessionId, Packet& packet)
 	HandlePacket_LoginGroup(this, *player, packet);
 }
 
-void LoginGroup::UpdateFrame()
-{
-}
+
 
 void LoginGroup::Handle_C_GAME_LOGIN(Player& player, uint64 accountId, Token& token)
 {

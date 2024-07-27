@@ -16,6 +16,12 @@
     <Filter Include="Game">
       <UniqueIdentifier>{fa74aedc-e5ae-4e3f-829b-e8384a8a0641}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Job">
+      <UniqueIdentifier>{8e87b7fb-b2b8-479c-becf-8e2879269f76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{999c90e2-d5aa-4ffa-8d99-2bfb1e25fdef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -23,9 +29,6 @@
     </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Main</Filter>
-    </ClCompile>
-    <ClCompile Include="GameGroupBase.cpp">
-      <Filter>Group</Filter>
     </ClCompile>
     <ClCompile Include="LoginGroup.cpp">
       <Filter>Group</Filter>
@@ -64,13 +67,16 @@
       <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="SpawnManager.cpp" />
+    <ClCompile Include="GameGroupBase.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
       <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="GameGroupBase.h">
-      <Filter>Group</Filter>
     </ClInclude>
     <ClInclude Include="LoginGroup.h">
       <Filter>Group</Filter>
@@ -113,5 +119,15 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="SpawnManager.h" />
+    <ClInclude Include="GameGroupBase.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="GlobalPool.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="TimerEvent.h" />
   </ItemGroup>
 </Project>

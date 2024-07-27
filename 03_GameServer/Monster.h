@@ -1,8 +1,10 @@
 #pragma once
+
+#include "GameObject.h"
 class Character;
 class Sector;
 
-class Monster
+class Monster : public GameObject, public enable_object_pooling
 {
 public:
 

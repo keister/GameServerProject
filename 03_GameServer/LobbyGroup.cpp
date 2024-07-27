@@ -9,16 +9,6 @@
 #include "PacketHandler.h"
 #include "Player.h"
 
-void LobbyGroup::OnEnter(uint64 sessionId)
-{
-	Player* player = _server->FindPlayer(sessionId);
-	insert_player(player);
-}
-
-void LobbyGroup::OnLeave(uint64 sessionId)
-{
-	delete_player(sessionId);
-}
 
 void LobbyGroup::OnRecv(uint64 sessionId, Packet& packet)
 {
@@ -31,9 +21,6 @@ void LobbyGroup::OnRecv(uint64 sessionId, Packet& packet)
 	HandlePacket_LobbyGroup(this, *player, packet);
 }
 
-void LobbyGroup::UpdateFrame()
-{
-}
 
 void LobbyGroup::Handle_C_GET_CHARACTER_LIST(Player& player)
 {
