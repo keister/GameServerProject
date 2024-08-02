@@ -4,20 +4,29 @@
 #include "Character.h"
 
 
-Character* Player::AddCharacter(mysqlx::Row& queryResult)
+Player::Player()
 {
-	Character* character = Character::Factory::Create(queryResult);
-	numCharacters++;
-	characters[character->Idx()] = character;
-
-	return character;
+	characterInfos.clear();
+	characterInfos.resize(6);
 }
 
-Character* Player::AddCharacter(const wstring& nickname, int32 modelId, int32 weaponId)
+CharacterInfo& Player::AddCharacter(mysqlx::Row& queryResult)
 {
-	Character* character = Character::Factory::Create(id, numCharacters, nickname, modelId, weaponId);
-	numCharacters++;
-	characters[character->Idx()] = character;
+	//Character* character = Character::Factory::Create(queryResult);
 
-	return character;
+	int32 index = queryResult[2].get<int32>();
+	Character::Factory::Create(&characterInfos[index], queryResult);
+	numCharacters++;
+
+	return characterInfos[index];
+}
+
+CharacterInfo& Player::AddCharacter(const wstring& nickname, int32 modelId, int32 weaponId)
+{
+	int32 index = numCharacters;
+	Character::Factory::Create(&characterInfos[index], id, numCharacters, nickname, modelId, weaponId);
+	numCharacters++;
+
+
+	return characterInfos[index];
 }

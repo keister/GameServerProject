@@ -4,6 +4,9 @@
 #include "SqlSession.h"
 #include <numbers>
 
+#include "PacketHandler.h"
+#include "Player.h"
+
 using namespace Eigen;
 
 Character::Factory& Character::Factory::Instance()
@@ -27,20 +30,39 @@ Character::Factory& Character::Factory::Instance()
 	return *instance;
 }
 
-Character* Character::Factory::Create(mysqlx::Row& queryResult)
+void Character::Factory::Create(CharacterInfo* info, mysqlx::Row& queryResult)
 {
-	Character* ret = Instance()._pool.Alloc(queryResult);
-
-	return ret;
+	info->id = queryResult[0].get<uint64>();
+	info->idx = queryResult[2].get<int32>();
+	info->nickname = queryResult[3].get<wstring>();
+	info->level = queryResult[4].get<int32>();
+	info->exp = queryResult[5].get<int32>();
+	info->pos.y() = queryResult[6].get<float32>();
+	info->pos.x() = queryResult[7].get<float32>();
+	info->hp = queryResult[8].get<int32>();
+	info->speed = queryResult[9].get<int32>();
+	info->modelId = queryResult[10].get<int32>();
+	info->weaponId = queryResult[11].get<int32>();
+	info->fieldId = queryResult[12].get<int32>();
 }
 
-Character* Character::Factory::Create(uint64 playerId, int32 idx, const wstring& nickName, int32 modelId, int32 weaponId)
+void Character::Factory::Create(CharacterInfo* info, uint64 playerId, int32 idx, const wstring& nickname, int32 modelId, int32 weaponId)
 {
 	uint64 id = InterlockedIncrement64((LONGLONG*)&_idGen) - 1;
 
-	Character* ret = Instance()._pool.Alloc(id, playerId, idx, nickName, modelId, weaponId);
+	info->id = id;
+	info->idx = idx;
+	info->nickname = nickname;
+	info->modelId = modelId;
+	info->weaponId = weaponId;
+	info->level = 1;
+	info->exp = 0;
+	info->pos.y() = 0;
+	info->pos.x() = 0;
+	info->hp = 100;
+	info->speed = 1;
+	info->fieldId = 0;
 
-	return ret;
 }
 
 void Character::Factory::Destroy(Character* ptr)
@@ -48,62 +70,120 @@ void Character::Factory::Destroy(Character* ptr)
 	Instance()._pool.Free(ptr);
 }
 
-Character::Character(mysqlx::Row& queryResult)
+Character::Character(uint64 playerId, CharacterInfo& info)
 {
-	_id = queryResult[0].get<uint64>();
-	_playerId = queryResult[1].get<uint64>();
-	_idx = queryResult[2].get<int32>();
-	_nickname = queryResult[3].get<wstring>();
-	_level = queryResult[4].get<int32>();
-	_exp = queryResult[5].get<int32>();
-	_pos.y() = queryResult[6].get<float32>();
-	_pos.x() = queryResult[7].get<float32>();
-	_hp = queryResult[8].get<int32>();
-	_speed = queryResult[9].get<int32>();
-	_modelId = queryResult[10].get<int32>();
-	_weaponId = queryResult[11].get<int32>();
-	_fieldId = queryResult[12].get<int32>();
-
-	_target = _pos;
-	_rotation = 0;
-}
-
-Character::Character(uint64 id, uint64 playerId, int32 idx, const wstring& nickname, int32 modelId, int32 weaponId)
-{
-	_id = id;
-	_idx = idx;
+	_id = info.id;
 	_playerId = playerId;
-	_nickname = nickname;
-	_modelId = modelId;
-	_weaponId = weaponId;
-
-	_level = 1;
-	_exp = 0;
-	_pos.y() = 0;
-	_pos.x() = 0;
-	_hp = 100;
-	_speed = 1;
-	_fieldId = 0;
-
-	_target = _pos;
-	_rotation = 0;
+	_idx = info.idx;
+	_nickname = info.nickname;
+	_modelId = info.modelId;
+	_weaponId = info.weaponId;
+	_level = info.level;
+	_exp = info.exp;
+	_hp = info.hp;
+	_speed = info.speed;
+	_fieldId = info.fieldId;
+	_target = position;
 }
 
-void Character::MoveTowards(float32 Delta)
+void Character::OnUpdate()
 {
-	Vector2<float32> dir = _target - _pos;
-	float32 distance = dir.norm();
-	if (distance == 0.0f)
-	{
-		return;
-	}
-
-	dir = dir / distance;
-
-	float moveDistance = fmin(Delta * _speed, distance);
-
-	_pos += dir * moveDistance;
-	_rotation = atan2(dir.x(), dir.y()) * (180.0f / numbers::pi_v<float>);
+	MoveTowards(_target, _speed * DeltaTime());
 }
 
+void Character::OnSpawnRequest(const list<GameHost*>& sessionList)
+{
+	Packet pkt = Make_S_SPAWN_CHARACTER(
+		_playerId,
+		_nickname,
+		_level,
+		position.y(),
+		position.x(),
+		_hp,
+		_speed,
+		_modelId,
+		_weaponId,
+		yaw
+	);
 
+	Packet movePacket = Make_S_MOVE_OTHER(_playerId, _target.y(), _target.x());
+
+	for (GameHost* host : sessionList)
+	{
+		SendPacket(host->SessionId(), pkt);
+		if (_target != position)
+		{
+			SendPacket(host->SessionId(), movePacket);
+		}
+	}
+}
+
+void Character::OnDestroyRequest(const list<GameHost*>& sessionList)
+{
+	Packet pkt = Make_S_DESTROY_CHARACTER(_playerId);
+	for (GameHost* host : sessionList)
+	{
+		SendPacket(host->SessionId(), pkt);
+	}
+}
+
+// void Character::OnSectorLeave(int32 sectorRange)
+// {
+// 	SendPacket(sectorRange, );
+// 	ExecuteForEachHost<Player>(sectorRange,
+// 		[this](Player* p)
+// 		{
+// 			if (p == _host)
+// 			{
+// 				return;
+// 			}
+//
+// 			SendPacket(_host->SessionId(), Make_S_DESTROY_CHARACTER(p->id));
+// 		});
+// }
+//
+// void Character::OnSectorEnter(int32 sectorRange)
+// {
+// 	SendPacket(sectorRange, Make_S_SPAWN_CHARACTER(
+// 		_playerId,
+// 		_nickname,
+// 		_level,
+// 		position.y(),
+// 		position.x(),
+// 		_hp,
+// 		_speed,
+// 		_modelId,
+// 		_weaponId,
+// 		yaw
+// 	));
+//
+// 	// ExecuteForEachHost<Player>(sectorRange,
+// 	// 	[this](Player* p)
+// 	// 	{
+// 	// 		if (p == _host)
+// 	// 		{
+// 	// 			return;
+// 	// 		}
+// 	// 		Character* curCharacter = p->curCharacter;
+// 	//
+// 	// 		SendPacket(_host->SessionId(), Make_S_SPAWN_CHARACTER(
+// 	// 			p->id,
+// 	// 			curCharacter->Nickname(),
+// 	// 			curCharacter->Level(),
+// 	// 			curCharacter->position.y(),
+// 	// 			curCharacter->position.x(),
+// 	// 			curCharacter->Hp(),
+// 	// 			curCharacter->Speed(),
+// 	// 			curCharacter->ModelId(),
+// 	// 			curCharacter->WeaponId(),
+// 	// 			curCharacter->yaw
+// 	// 		));
+// 	//
+// 	// 		if (curCharacter->Target() != curCharacter->position)
+// 	// 		{
+//
+// 	// 		}
+// 	// 	});
+// }
+//
+//

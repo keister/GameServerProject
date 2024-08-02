@@ -3,6 +3,7 @@
 #include "GroupBase.h"
 #include "PacketHandler.h"
 #include "Player.h"
+#include "GameObject.h"
 
 Map::Map(GroupBase* group, int32 width, int32 height, int32 sectorWidth, int32 sectorHeight)
 	: _width(width)
@@ -32,107 +33,6 @@ Map::Map(GroupBase* group, int32 width, int32 height, int32 sectorWidth, int32 s
 	}
 }
 
-bool Map::MoveSector(Player& player)
-{
-	Character* character = player.curCharacter;
-	Sector* newSector = FindSectorByPosition(character->Y(), character->X());
-	if (newSector == player.sector)
-	{
-		return false;
-	}
-
-	int32 spawnSectorRange = 0;
-	int32 destroySectorRange = 0;
-
-	int32 dy = newSector->pos.y - player.sector->pos.y;
-	int32 dx = newSector->pos.x - player.sector->pos.x;
-
-	if (dx == 1)
-	{
-		spawnSectorRange |= COL_RIGHT;
-		destroySectorRange |= COL_LEFT;
-	}
-	else if (dx == -1)
-	{
-		spawnSectorRange |= COL_LEFT;
-		destroySectorRange |= COL_RIGHT;
-	}
-
-	if (dy == 1)
-	{
-		spawnSectorRange |= ROW_UP;
-		destroySectorRange |= ROW_DOWN;
-	}
-	else if (dy == -1)
-	{
-		spawnSectorRange |= ROW_DOWN;
-		destroySectorRange |= ROW_UP;
-	}
-
-	SendPacket(player, destroySectorRange, Make_S_DESTROY_CHARACTER(player.id), false);
-
-	SectorList sectors;
-	GetSectors(sectors, player.sector->pos.y, player.sector->pos.x, destroySectorRange);
-	for (Sector* sector : sectors)
-	{
-		for (Player* p : sector->players)
-		{
-			_group->SendPacket(player.sessionId, Make_S_DESTROY_CHARACTER(p->id));
-		}
-	}
-	sectors.clear();
-
-	player.sector->players.erase(&player);
-	player.sector = newSector;
-	player.sector->players.insert(&player);
-
-	SendPacket(player, spawnSectorRange,
-		Make_S_SPAWN_CHARACTER(
-			player.id,
-			character->Nickname(),
-			character->Level(),
-			character->Y(),
-			character->X(),
-			character->Hp(),
-			character->Speed(),
-			character->ModelId(),
-			character->WeaponId(),
-			character->Rotation()
-		), false);
-	SendPacket(player, spawnSectorRange, Make_S_MOVE_OTHER(player.id, character->Target().y(), character->Target().x()), false);
-
-	GetSectors(sectors, player.sector->pos.y, player.sector->pos.x, spawnSectorRange);
-
-	for (Sector* sector : sectors)
-	{
-		for (Player* p : sector->players)
-		{
-			Character* curCharacter = p->curCharacter;
-
-			_group->SendPacket(player.sessionId,
-				Make_S_SPAWN_CHARACTER(
-					p->id,
-					curCharacter->Nickname(),
-					curCharacter->Level(),
-					curCharacter->Y(),
-					curCharacter->X(),
-					curCharacter->Hp(),
-					curCharacter->Speed(),
-					curCharacter->ModelId(),
-					curCharacter->WeaponId(),
-					curCharacter->Rotation()
-				));
-
-			if (curCharacter->Target() != curCharacter->Pos())
-			{
-				_group->SendPacket(player.sessionId, Make_S_MOVE_OTHER(p->id, curCharacter->Target().y(), curCharacter->Target().x()));
-			}
-		}
-	}
-
-	return true;
-}
-
 void Map::SetAroundSectors(int32 y, int32 x)
 {
 	SectorInfo& info = _sectors[y][x];
@@ -154,45 +54,53 @@ void Map::SetAroundSectors(int32 y, int32 x)
 
 }
 
-void Map::SendPacket(Player& player, int32 sectorRange, Packet& pkt, bool sendToOwn)
+void Map::SendPacket(Sector* sector, int32 sectorRange, Packet pkt, list<uint64>& except)
 {
-
-	Player* except = nullptr;
-
-	if (sendToOwn == false)
-	{
-		except = &player;
-	}
-
-	Point pos = player.sector->pos;
-
 	int32 currentSector = 1;
-
-	pkt.IncRef();
 
 	for (int32 idx = 0; idx < 9; idx++, currentSector <<= 1)
 	{
 		if ((sectorRange & currentSector) != 0)
 		{
-			Sector* sector = _sectors[pos.y][pos.x].aroundSectors[idx];
-			if (sector == nullptr)
+			Sector* targetSector = _sectors[sector->pos.y][sector->pos.x].aroundSectors[idx];
+			if (targetSector == nullptr)
 			{
 				continue;
 			}
 
-			unordered_set<Player*>& players = _sectors[pos.y][pos.x].aroundSectors[idx]->players;
+			unordered_set<GameHost*>& players = targetSector->hosts;
 
-			for (Player* p : players)
+			for (GameHost* p : players)
 			{
-				if (p != except)
+				bool isExcept = false;
+				for (uint64 id : except)
 				{
-					_group->SendPacket(p->sessionId, pkt);
+					if (id == p->SessionId())
+					{
+						isExcept = true;
+						break;
+					}
+				}
+
+				if (isExcept == false)
+				{
+					_group->SendPacket(p->SessionId(), pkt);
 				}
 			}
 		}
 	}
+}
 
-	pkt.DecRef();
+void Map::SendPacket(Sector* sector, int32 sectorRange, Packet pkt, uint64 except)
+{
+	list list = { except };
+	SendPacket(sector, sectorRange, pkt, list);
+}
+
+void Map::SendPacket(Sector* sector, int32 sectorRange, Packet pkt)
+{
+	list<uint64> list = {};
+	SendPacket(sector, sectorRange, pkt, list);
 }
 
 void Map::GetSectors(SectorList& list, int32 y, int32 x, int32 sectorRange)
@@ -213,4 +121,56 @@ void Map::GetSectors(SectorList& list, int32 y, int32 x, int32 sectorRange)
 		}
 	}
 
+}
+
+void Sector::InsertObject(GameObject* obj)
+{
+	const TypeInfo* info = obj->GetTypeInfo();
+
+	while (true)
+	{
+		auto it = _classifiedObjects.find(info->id);
+
+		unordered_set<void*>* objects;
+
+		if (it == _classifiedObjects.end())
+		{
+			objects = &_classifiedObjects.insert({ info->id, {} }).first->second;
+		}
+		else
+		{
+			objects = &it->second;
+		}
+
+		objects->insert(obj);
+
+		if (info->super == nullptr)
+		{
+			break;
+		}
+
+		info = info->super;
+	}
+
+}
+
+void Sector::EraseObject(GameObject* obj)
+{
+	const TypeInfo* info = obj->GetTypeInfo();
+
+	while (true)
+	{
+		auto it = _classifiedObjects.find(info->id);
+
+		unordered_set<void*>* objects = &it->second;
+
+		objects->erase(obj);
+
+		if (info->super == nullptr)
+		{
+			break;
+		}
+
+		info = info->super;
+	}
 }

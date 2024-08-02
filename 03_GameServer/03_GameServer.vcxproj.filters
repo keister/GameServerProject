@@ -73,6 +73,14 @@
     <ClCompile Include="GameObject.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="GameHost.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp" />
+    <ClCompile Include="FieldManager.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="InheritanceReflection.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -128,6 +136,16 @@
     <ClInclude Include="GameObject.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="TimerEvent.h" />
+    <ClInclude Include="TimerEvent.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="GameHost.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h" />
+    <ClInclude Include="FieldManager.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="InheritanceReflection.h" />
   </ItemGroup>
 </Project>

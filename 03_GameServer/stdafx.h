@@ -9,6 +9,7 @@
 #include "Libs/Json/json.hpp"
 #include <Dense>
 using json = nlohmann::json;
+using Position = Eigen::Vector2<float32>;
 using namespace std;
 
 //#define PROFILE

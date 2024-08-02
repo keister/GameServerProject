@@ -10,7 +10,7 @@
 #include "Player.h"
 
 
-void LobbyGroup::OnRecv(uint64 sessionId, Packet& packet)
+void LobbyGroup::OnRecv(uint64 sessionId, Packet packet)
 {
 	Player* player = find_player(sessionId);
 	if (player == nullptr)
@@ -26,35 +26,39 @@ void LobbyGroup::Handle_C_GET_CHARACTER_LIST(Player& player)
 {
 	vector<Dto_S_GET_CHARACTER_LIST> list(player.numCharacters);
 
-	for (int32 i = 0; i < player.numCharacters; i++)
+	for (int32 i = 0; i < list.size(); i++)
 	{
-		Character* character = player.characters[i];
-		list[i].id = character->Id();
-		list[i].level = character->Level();
-		list[i].nickname = character->Nickname();
-		list[i].modelId = character->ModelId();
-		list[i].weaponId = character->WeaponId();
+		CharacterInfo& character = player.characterInfos[i];
+		list[i].id = character.id;
+		list[i].level = character.level;
+		list[i].nickname = character.nickname;
+		list[i].modelId = character.modelId;
+		list[i].weaponId = character.weaponId;
 	}
 
-	SendPacket(player.sessionId, Make_S_GET_CHARACTER_LIST(list));
+	SendPacket(player.SessionId(), Make_S_GET_CHARACTER_LIST(list));
 }
 
 void LobbyGroup::Handle_C_CREATE_CHARACTER(Player& player, wstring& nickname, int32 modelId, int32 weaponId)
 {
-	Character* character = player.AddCharacter(nickname, modelId, weaponId);
-	DBWriter::Write(Job::Alloc<DBJob::CreateCharacter>(character->Id(), character->PlayerId(), character->Idx(), character->Nickname(), character->ModelId(), character->WeaponId()));
-	SendPacket(player.sessionId, Make_S_CREATE_CHARACTER(true));
+	CharacterInfo& info = player.AddCharacter(nickname, modelId, weaponId);
+	DBWriter::Write(Job::Alloc<DBJob::CreateCharacter>(
+		info.id, 
+		player.id, 
+		info.idx, 
+		info.nickname, 
+		info.modelId, 
+		info.weaponId
+	));
+
+	SendPacket(player.SessionId(), Make_S_CREATE_CHARACTER(true));
 }
 
 void LobbyGroup::Handle_C_GAME_ENTER(Player& player, uint64 characterId, int32 idx)
 {
-	player.curCharacter = player.characters[idx];
-	if (player.curCharacter->Id() != characterId)
-	{
-		return;
-	}
+	player.curIndex = idx;
 
-	MoveGroup(player.sessionId, player.curCharacter->FieldId());
+	MoveGroup(player.SessionId(), player.characterInfos[player.curIndex].fieldId);
 }
 
 

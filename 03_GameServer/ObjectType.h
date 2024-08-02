@@ -6,14 +6,14 @@ enum class ObjectType : uint8
 };
 
 
-inline Packet& operator<< (Packet& pkt, ObjectType type)
+inline RawPacket& operator<< (RawPacket& pkt, ObjectType type)
 {
 	pkt << static_cast<uint8>(type);
 
 	return pkt;
 }
 
-inline Packet& operator>> (Packet& pkt, ObjectType& type)
+inline RawPacket& operator>> (RawPacket& pkt, ObjectType& type)
 {
 	pkt >> *reinterpret_cast<uint8*>(&type);
 

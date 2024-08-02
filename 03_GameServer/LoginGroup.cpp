@@ -11,7 +11,7 @@
 #include "SqlSession.h"
 
 
-void LoginGroup::OnRecv(uint64 sessionId, Packet& packet)
+void LoginGroup::OnRecv(uint64 sessionId, Packet packet)
 {
 	Player* player = find_player(sessionId);
 	if (player == nullptr)
@@ -31,7 +31,7 @@ void LoginGroup::Handle_C_GAME_LOGIN(Player& player, uint64 accountId, Token& to
 
 	if (tk != token)
 	{
-		SendPacket(player.sessionId, Make_S_GAME_LOGIN(false));
+		SendPacket(player.SessionId(), Make_S_GAME_LOGIN(false));
 		return;
 	}
 
@@ -76,8 +76,8 @@ void LoginGroup::Handle_C_GAME_LOGIN(Player& player, uint64 accountId, Token& to
 	{
 		player.AddCharacter(r);
 	}
-	MoveGroup(player.sessionId, (uint8)Groups::LOBBY);
-	SendPacket(player.sessionId, Make_S_GAME_LOGIN(true));
+	MoveGroup(player.SessionId(), (uint8)Groups::LOBBY);
+	SendPacket(player.SessionId(), Make_S_GAME_LOGIN(true));
 }
 
 

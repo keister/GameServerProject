@@ -7,6 +7,7 @@
 #include "Player.h"
 #include "Common/Token.h"
 #include "LoginGroup.h"
+#include "GameHost.h"
 
 void GameServer::OnStart()
 {
@@ -23,21 +24,17 @@ bool GameServer::OnConnectionRequest(const NetworkAddress& netInfo)
 
 void GameServer::OnAccept(const NetworkAddress& netInfo, uint64 sessionId)
 {
-	Player* player = _playerPool.Alloc(sessionId);
-	InsertPlayer(player);
-
+	Player* player = AddHost<Player>(sessionId);
 	SetGroup(sessionId, (uint8)Groups::LOGIN);
 }
 
 void GameServer::OnDisconnect(uint64 sessionId)
 {
-	Player* player = FindPlayer(sessionId);
+	Player* player = GetHost<Player>(sessionId);
 
 	if (player != nullptr)
 	{
-
-		DeletePlayer(player);
-		_playerPool.Free(player);
+		RemoveHost(player);
 	}
 	else
 	{
@@ -65,29 +62,15 @@ GameServer::GameServer(const wstring& name)
 	_groups[(uint8)Groups::TOWN]->SetServer(this);
 }
 
-Player* GameServer::FindPlayer(uint64 sessionId)
+void GameServer::RemoveHost(GameHost* ptr)
 {
-	READ_LOCK(_lock);
-	auto findIt = _players.find(sessionId);
-
-	if (findIt == _players.end())
 	{
-		return nullptr;
+		WRITE_LOCK(_lock);
+		_hosts.erase(ptr->_sessionId);
 	}
 
-	return findIt->second;
-}
+	freeFunc(ptr);
 
-void GameServer::InsertPlayer(Player* player)
-{
-	WRITE_LOCK(_lock);
-	_players.insert({ player->sessionId, player });
-}
-
-void GameServer::DeletePlayer(Player* player)
-{
-	WRITE_LOCK(_lock);
-	_players.erase(player->sessionId);
 }
 
 bool GameServer::GetToken(uint64 accountId, Token& token)

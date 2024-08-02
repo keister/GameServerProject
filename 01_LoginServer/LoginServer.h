@@ -30,10 +30,10 @@ protected:
 	bool OnConnectionRequest(const NetworkAddress& netInfo) override;
 	void OnAccept(const NetworkAddress& netInfo, uint64 sessionId) override;
 	void OnDisconnect(uint64 sessionId) override;
-	void OnRecv(uint64 sessionId, Packet& pkt) override;
+	void OnRecv(uint64 sessionId, Packet pkt) override;
 
 	//@@@AutoPackBegin
-	friend bool HandlePacket_LoginServer(LoginServer*, Player&, Packet&);
+	friend bool HandlePacket_LoginServer(LoginServer*, Player&, Packet);
 	void Handle_C_REQ_LOGIN(Player& player, int64 accountNo, Token& token);
 	void Handle_C_GET_SERVER_LIST(Player& player);
 

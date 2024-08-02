@@ -1,38 +1,34 @@
 #pragma once
-
 #include "GameObject.h"
 class Character;
 class Sector;
 
 class Monster : public GameObject, public enable_object_pooling
 {
+	REGISTER_INHERITANCE(Monster)
 public:
 
 
-	void SetPos(float32 y, float32 x)
-	{
-		pos = { x, y };
-	}
+	Monster(uint64 id, int32 attackDamage, int32 speed, int32 maxHp);
 
-	void SetSector(Sector* sector)
-	{
-		this->sector = sector;
-	}
+protected:
+	void OnUpdate() override;
+	void OnSpawnRequest(const list<GameHost*>& sessionList) override;
+	void OnDestroyRequest(const list<GameHost*>& sessionList) override;
+	//~Monster() override;
 
-	static Monster* AllocMonster(uint64 monsterId);
-	static void DestroyMonster(Monster* ptr);
-
+	//void OnUpdate() override;
+	//void OnSectorLeave(int32 sectorRange) override;
+	//void OnSectorEnter(int32 sectorRange) override;
 
 public:
 	uint64 id;
-	uint64 objectId;
+	uint64 monsterId;
+	int32 maxHp;
 	int32 hp;
 	int32 attackDamage;
 	int32 speed;
-	Sector* sector;
-	Eigen::Vector2<float32> pos;
-	Character* target = nullptr;
 
-	inline static ObjectPoolTls<Monster, false> _pool;
+	Character* target = nullptr;
 };
 

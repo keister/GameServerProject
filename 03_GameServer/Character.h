@@ -1,11 +1,16 @@
 #pragma once
 
+#include "GameObject.h"
 #include "mysqlx/xdevapi.h"
+struct CharacterInfo;
 class Player;
 
-class Character
+class Character : public GameObject, enable_object_pooling
 {
+
 	friend Player;
+
+	REGISTER_INHERITANCE(Character)
 
 public:
 	class Factory
@@ -16,21 +21,17 @@ public:
 
 		static Factory& Instance();
 	public:
-		static Character* Create(mysqlx::Row& queryResult);
-		static Character* Create(uint64 playerId, int32 idx, const wstring& nickName, int32 modelId, int32 weaponId);
+		static void Create(CharacterInfo* info, mysqlx::Row& queryResult);
+		static void Create(CharacterInfo* info, uint64 playerId, int32 idx, const wstring& nickName, int32 modelId, int32 weaponId);
 		static void Destroy(Character* ptr);
 	};
 
-	Character(mysqlx::Row& queryResult);
-	Character(uint64 id, uint64 playerId, int32 idx, const wstring& nickname, int32 modelId, int32 weaponId);
+	Character(uint64 playerId, CharacterInfo& info);
 
-	void Move(float32 y, float32 x)
+	void SetTargetPos(const Eigen::Vector2<float32>& targetPos)
 	{
-		_target = { x, y };
+		_target = targetPos;
 	}
-
-
-	void MoveTowards(float32 maxDistance);
 
 private:
 	uint64	_id;
@@ -45,10 +46,7 @@ private:
 	int32	_weaponId;
 	int32	_fieldId;
 
-	Eigen::Vector2<float32> _pos;
 	Eigen::Vector2<float32> _target;
-	float32 _rotation;
-
 
 
 public:
@@ -82,16 +80,6 @@ public:
 		return _exp;
 	}
 
-	float32 Y() const
-	{
-		return _pos.y();
-	}
-
-	float32 X() const
-	{
-		return _pos.x();
-	}
-
 	int32 Hp() const
 	{
 		return _hp;
@@ -121,13 +109,9 @@ public:
 	{
 		return _target;
 	}
-	Eigen::Vector2<float32>& Pos()
-	{
-		return _pos;
-	}
 
-	float32 Rotation()
-	{
-		return _rotation;
-	}
+protected:
+	void OnUpdate() override;
+	void OnSpawnRequest(const list<GameHost*>& sessionList) override;
+	void OnDestroyRequest(const list<GameHost*>& sessionList) override;
 };

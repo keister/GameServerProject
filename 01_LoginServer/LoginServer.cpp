@@ -56,7 +56,7 @@ void LoginServer::OnDisconnect(uint64 sessionId)
 
 }
 
-void LoginServer::OnRecv(uint64 sessionId, Packet& pkt)
+void LoginServer::OnRecv(uint64 sessionId, Packet pkt)
 {
 	Player* player = find_user(sessionId);
 
@@ -98,24 +98,36 @@ void LoginServer::Handle_C_REQ_LOGIN(Player& player, int64 accountNo, Token& tok
 	mysqlx::Schema sch = session.getSchema("login");
 
 	uint64 id;
-
-	mysqlx::RowResult queryResult = sch.getTable("account")
-		.select("id")
-		.where("account_id = :accid")
-		.bind("accid", accountId)
-		.execute();
-
-
-	if (queryResult.count() == 0)
+	try
 	{
-		auto insert = sch.getTable("account").insert("account_id", "username").values(accountId, username).execute();
-		id = insert.getAutoIncrementValue();
-	}
-	else
-	{
-		id = queryResult.fetchOne()[0].get<uint64>();
+		mysqlx::RowResult queryResult = sch.getTable("account")
+			.select("id")
+			.where("account_id = :accid")
+			.bind("accid", accountId)
+			.execute();
 
+
+		if (queryResult.count() == 0)
+		{
+			auto insert = sch.getTable("account").insert("account_id", "username").values(accountId, username).execute();
+			id = insert.getAutoIncrementValue();
+		}
+		else
+		{
+			id = queryResult.fetchOne()[0].get<uint64>();
+
+		}
 	}
+	catch (const mysqlx::Error& err)
+	{
+		const char* errStr = err.what();
+		wstring errString(errStr, errStr + strlen(errStr));
+		CRASH_LOG(L"DB", L"DB Fail : %s", errString.c_str());
+		
+	}
+
+
+
 
 
 	if (set_token(id, gameToken) == false)

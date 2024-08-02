@@ -1,6 +1,9 @@
 #pragma once
+#include "GameHost.h"
 #include "Packet.h"
-
+#include "InheritanceReflection.h"
+class GameObject;
+class GameHost;
 class Monster;
 class Sector;
 class GroupBase;
@@ -10,63 +13,103 @@ using SectorList = list<Sector*>;
 
 enum SectorRange
 {
-	UP					= 0x01,
-	LEFT_UP				= 0x02,
-	LEFT				= 0x04,
-	LEFT_DOWN			= 0x08,
-	DOWN				= 0x10,
-	RIGHT_DOWN			= 0x20,
-	RIGHT				= 0x40,
-	RIGHT_UP			= 0x80,
-	CENTER				= 0x100,
+	UP = 0x01,
+	LEFT_UP = 0x02,
+	LEFT = 0x04,
+	LEFT_DOWN = 0x08,
+	DOWN = 0x10,
+	RIGHT_DOWN = 0x20,
+	RIGHT = 0x40,
+	RIGHT_UP = 0x80,
+	CENTER = 0x100,
 
-	COL_CENTER			= UP | CENTER | DOWN,
-	COL_RIGHT			= RIGHT_UP | RIGHT | RIGHT_DOWN,
-	COL_LEFT			= LEFT_UP | LEFT | LEFT_DOWN,
+	COL_CENTER = UP | CENTER | DOWN,
+	COL_RIGHT = RIGHT_UP | RIGHT | RIGHT_DOWN,
+	COL_LEFT = LEFT_UP | LEFT | LEFT_DOWN,
 
-	ROW_UP				= LEFT_UP | UP | RIGHT_UP,
-	ROW_CENTER			= LEFT | CENTER | RIGHT,
-	ROW_DOWN			= LEFT_DOWN | DOWN | RIGHT_DOWN,
+	ROW_UP = LEFT_UP | UP | RIGHT_UP,
+	ROW_CENTER = LEFT | CENTER | RIGHT,
+	ROW_DOWN = LEFT_DOWN | DOWN | RIGHT_DOWN,
 
-	COL_LEFT_CENTER		= COL_LEFT | COL_CENTER,
-	COL_RIGHT_CENTER	= COL_RIGHT | COL_CENTER,
+	COL_LEFT_CENTER = COL_LEFT | COL_CENTER,
+	COL_RIGHT_CENTER = COL_RIGHT | COL_CENTER,
 
-	ROW_UP_CENTER		= ROW_UP | ROW_CENTER,
-	ROW_DOWN_CENTER		= ROW_DOWN | ROW_CENTER,
+	ROW_UP_CENTER = ROW_UP | ROW_CENTER,
+	ROW_DOWN_CENTER = ROW_DOWN | ROW_CENTER,
 
-	ARROW_LEFT_UP		= COL_LEFT | ROW_UP,
-	ARROW_RIGHT_UP		= COL_RIGHT | ROW_UP,
-	ARROW_LEFT_DOWN		= COL_LEFT | ROW_DOWN,
-	ARROW_RIGHT_DOWN	= COL_RIGHT | ROW_DOWN,
+	ARROW_LEFT_UP = COL_LEFT | ROW_UP,
+	ARROW_RIGHT_UP = COL_RIGHT | ROW_UP,
+	ARROW_LEFT_DOWN = COL_LEFT | ROW_DOWN,
+	ARROW_RIGHT_DOWN = COL_RIGHT | ROW_DOWN,
 
-	AROUND				= 0x1FF,
+	AROUND = 0x1FF,
 };
 
 class Sector
 {
+	using ObjSet = unordered_set<void*>;
 public:
 	Point pos;
-	unordered_set<Player*> players;
-	unordered_set<Monster*> monsters;
+	unordered_set<GameHost*> hosts;
+	unordered_set<GameObject*> objects;
+	
+
+	template <typename T>
+	void ExecuteForEachHost(std::function<void(T*)>&& func)
+	{
+		for (GameHost* host : hosts)
+		{
+			func(static_cast<T*>(host));
+		}
+	}
+
+	template <typename T>
+	void ExecuteForEachObject(std::function<void(T*)>&& func)
+	{
+		TypeInfo* info = T::StaticInfo();
+
+		auto it = _classifiedObjects.find(info->id);
+
+		if (it == _classifiedObjects.end())
+		{
+			return;
+		}
+
+		for (void* objs : it->second)
+		{
+			func((T*)objs);
+		}
+
+	}
+
+	void InsertObject(GameObject* obj);
+	void EraseObject(GameObject* obj);
+
+private:
+	unordered_map<uint64, unordered_set<void*>> _classifiedObjects;
 };
 
 
 class Map
 {
-
 public:
-	static constexpr int32 dy[] = { 1, 1, 0, -1, -1, -1, 0, 1};
-	static constexpr int32 dx[] = { 0, -1, -1, -1, 0, 1, 1, 1};
+
+
+	static constexpr int32 dy[] = { 1, 1, 0, -1, -1, -1, 0, 1 };
+	static constexpr int32 dx[] = { 0, -1, -1, -1, 0, 1, 1, 1 };
 
 	struct SectorInfo
 	{
 		Sector* sector;
-		vector<Sector*> aroundSectors{9, nullptr};
+		vector<Sector*> aroundSectors{ 9, nullptr };
 	};
 
 	Map(GroupBase* group, int32 width, int32 height, int32 sectorWidth, int32 sectorHeight);
 
-	void SendPacket(Player& player, int32 sectorRange, Packet& pkt, bool sendToOwn);
+	void SendPacket(Sector* sector, int32 sectorRange, Packet pkt, list<uint64>& except);
+	void SendPacket(Sector* sector, int32 sectorRange, Packet pkt, uint64 except);
+	void SendPacket(Sector* sector, int32 sectorRange, Packet pkt);
+
 	Sector* GetSector(int32 y, int32 x)
 	{
 		return _sectors[y][x].sector;
@@ -87,7 +130,54 @@ public:
 		return _sectors[sector->pos.y][sector->pos.x].aroundSectors;
 	}
 
+	template<typename T>
+	void ExecuteForEachHost(Sector* sector, int32 sectorRange, std::function<void(T*)>&& func)
+	{
+		vector<Sector*> around = _sectors[sector->pos.y][sector->pos.x].aroundSectors;
+		int32 currentSector = 1;
+		for (int32 idx = 0; idx < 9; idx++, currentSector <<= 1)
+		{
+			if ((sectorRange & currentSector) != 0)
+			{
+				Sector* targetSector = _sectors[sector->pos.y][sector->pos.x].aroundSectors[idx];
+				if (targetSector == nullptr)
+				{
+					continue;
+				}
+
+				targetSector->ExecuteForEachHost<T>(std::move(func));
+			}
+		}
+	}
+
+	template<typename T>
+	void ExecuteForEachObject(Sector* sector, int32 sectorRange, std::function<void(T*)>&& func)
+	{
+		vector<Sector*> around = _sectors[sector->pos.y][sector->pos.x].aroundSectors;
+		int32 currentSector = 1;
+		for (int32 idx = 0; idx < 9; idx++, currentSector <<= 1)
+		{
+			if ((sectorRange & currentSector) != 0)
+			{
+				Sector* targetSector = _sectors[sector->pos.y][sector->pos.x].aroundSectors[idx];
+				if (targetSector == nullptr)
+				{
+					continue;
+				}
+
+				targetSector->ExecuteForEachObject<T>(std::move(func));
+			}
+		}
+	}
+
 	bool MoveSector(Player& player);
+
+	int32 Width() const { return _width; }
+	int32 Height() const { return _height; }
+	int32 SectorWidth() const { return _sectorWidth; }
+	int32 SectorHeight() const { return _sectorHeight; }
+	int32 SectorMaxY() const { return _sectorMaxY; }
+	int32 SectorMaxX() const { return _sectorMaxX; }
 
 private:
 	void SetAroundSectors(int32 y, int32 x);
