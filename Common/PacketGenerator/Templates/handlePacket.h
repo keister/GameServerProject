@@ -1,6 +1,7 @@
 #pragma once
+#include "Packet.h"
 class Player;
-class Packet;
+class RawPacket;
 
 {%- for depen in dependencies %}
 {%- for st in depen.structs %}
@@ -43,19 +44,19 @@ struct {{d.name}}
 {{' '}}
 
 {%- for d in section.dto.dtos %}
-extern Packet& operator<< (Packet& pkt, const {{d.name}}& value);
-extern Packet& operator>> (Packet& pkt, {{d.name}}& value);
+extern RawPacket& operator<< (RawPacket& pkt, const {{d.name}}& value);
+extern RawPacket& operator>> (RawPacket& pkt, {{d.name}}& value);
 {%- endfor %}
 
 {%- for group in groups %}
-extern bool HandlePacket_{{group.name}}({{group.name}}* group, Player& player, Packet& pkt);
+extern bool HandlePacket_{{group.name}}({{group.name}}* group, Player& player, Packet pkt);
 {%- endfor %}
 
 {%- for server in servers %}
-extern bool HandlePacket_{{server.name}}({{server.name}}* server, Player& player, Packet& pkt);
+extern bool HandlePacket_{{server.name}}({{server.name}}* server, Player& player, Packet pkt);
 {%- endfor %}
 
 
 {%- for proto in section.dict_sc.values() %}
-extern Packet& Make_{{proto.name}}({%- for var in proto.params %}const {{var.typeName}}{%- if var.typeName not in primitive %}&{%- endif %} {{var.name}}{%- if loop.index != proto.params|length %},{{' '}}{%- endif %}{%- endfor %});
+extern Packet Make_{{proto.name}}({%- for var in proto.params %}const {{var.typeName}}{%- if var.typeName not in primitive %}&{%- endif %} {{var.name}}{%- if loop.index != proto.params|length %},{{' '}}{%- endif %}{%- endfor %});
 {%- endfor %}

@@ -34,14 +34,14 @@ enum class PacketType : uint16
 
 
 
-inline Packet& operator<< (Packet& pkt, PacketType type)
+inline RawPacket& operator<< (RawPacket& pkt, PacketType type)
 {
 	pkt << static_cast<uint16>(type);
 
 	return pkt;
 }
 
-inline Packet& operator>> (Packet& pkt, PacketType& type)
+inline RawPacket& operator>> (RawPacket& pkt, PacketType& type)
 {
 	pkt >> *reinterpret_cast<uint16*>(&type);
 

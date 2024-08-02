@@ -44,7 +44,7 @@ struct Token
 	// }
 };
 
-inline Packet& operator>> (Packet& pkt, Token& token)
+inline RawPacket& operator>> (RawPacket& pkt, Token& token)
 {
 	uint16 size = 0;
 	pkt >> size;
@@ -54,7 +54,7 @@ inline Packet& operator>> (Packet& pkt, Token& token)
 	return pkt;
 }
 
-inline Packet& operator<< (Packet& pkt, const Token& token)
+inline RawPacket& operator<< (RawPacket& pkt, const Token& token)
 {
 
 	uint16 size = token.token.size();
