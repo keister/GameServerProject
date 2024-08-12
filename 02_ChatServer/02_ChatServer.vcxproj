@@ -7,12 +7,22 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ChatServer.cpp" />
+    <ClCompile Include="DBReadThreadPool.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="PacketHandler.cpp" />
+    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="SqlSession.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ChatServer.h" />
+    <ClInclude Include="DBReadThreadPool.h" />
+    <ClInclude Include="PacketHandler.h" />
+    <ClInclude Include="Player.h" />
+    <ClInclude Include="SqlSession.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

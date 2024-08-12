@@ -63,12 +63,38 @@ void LoginGroup::Handle_C_GAME_LOGIN(Player& player, uint64 accountId, Token& to
 	}
 
 
+	try
+	{
+		result = sch.getTable("character")
+			.select(
+				"id", 
+				"idx", 
+				"nickname", 
+				"level", 
+				"exp", 
+				"position_y", 
+				"position_x", 
+				"max_hp", 
+				"hp", 
+				"max_mp", 
+				"mp", 
+				"speed", 
+				"model_id", 
+				"weapon_id", 
+				"field_id"
+			)
+			.where("player_id = :ID")
+			.bind("ID", player.id)
+			.execute();
+	}
+	catch (mysqlx::Error& err)
+	{
+		const char* errStr = err.what();
+		wstring errString(errStr, errStr + strlen(errStr));
+		CRASH_LOG(L"DB", L"DB Fail : %s", errString.c_str());
+	}
 
-	result = sch.getTable("character")
-		.select("*")
-		.where("player_id = :ID")
-		.bind("ID", player.id)
-		.execute();
+
 
 	list<mysqlx::Row> rows = result.fetchAll();
 

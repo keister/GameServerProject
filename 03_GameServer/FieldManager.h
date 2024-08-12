@@ -1,8 +1,10 @@
 #pragma once
 #include "GameObject.h"
 
+
 class FieldManager : FixedObject
 {
+
 	inline static uint64 monsterIdGenerator = 0;
 
 public:

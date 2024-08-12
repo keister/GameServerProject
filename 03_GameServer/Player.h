@@ -15,7 +15,10 @@ struct CharacterInfo
 	int32	level;
 	int32	exp;
 	Eigen::Vector2<float32> pos;
+	int32	maxHp;
 	int32	hp;
+	int32	maxMp;
+	int32	mp;
 	int32	speed;
 	int32	modelId;
 	int32	weaponId;
@@ -27,7 +30,10 @@ struct CharacterInfo
 		level = character->Level();
 		exp = character->Exp();
 		pos = character->position;
+		maxHp = character->MaxHp();
 		hp = character->Hp();
+		maxMp = character->MaxMp();
+		mp = character->Mp();
 		speed = character->Speed();
 		modelId = character->ModelId();
 		weaponId = character->WeaponId();

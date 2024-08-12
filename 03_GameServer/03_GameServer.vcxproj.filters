@@ -22,6 +22,9 @@
     <Filter Include="Core">
       <UniqueIdentifier>{999c90e2-d5aa-4ffa-8d99-2bfb1e25fdef}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{60133a3a-fcea-4a7c-a2d7-79f89b7e2506}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -81,6 +84,7 @@
       <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="InheritanceReflection.cpp" />
+    <ClCompile Include="MapExporter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -147,5 +151,6 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="InheritanceReflection.h" />
+    <ClInclude Include="MapExporter.h" />
   </ItemGroup>
 </Project>

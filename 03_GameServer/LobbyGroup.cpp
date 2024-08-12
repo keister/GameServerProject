@@ -8,6 +8,7 @@
 #include "Job.h"
 #include "PacketHandler.h"
 #include "Player.h"
+#include "SqlSession.h"
 
 
 void LobbyGroup::OnRecv(uint64 sessionId, Packet packet)
@@ -34,6 +35,7 @@ void LobbyGroup::Handle_C_GET_CHARACTER_LIST(Player& player)
 		list[i].nickname = character.nickname;
 		list[i].modelId = character.modelId;
 		list[i].weaponId = character.weaponId;
+		list[i].fieldId = character.fieldId;
 	}
 
 	SendPacket(player.SessionId(), Make_S_GET_CHARACTER_LIST(list));
@@ -42,16 +44,34 @@ void LobbyGroup::Handle_C_GET_CHARACTER_LIST(Player& player)
 void LobbyGroup::Handle_C_CREATE_CHARACTER(Player& player, wstring& nickname, int32 modelId, int32 weaponId)
 {
 	CharacterInfo& info = player.AddCharacter(nickname, modelId, weaponId);
-	DBWriter::Write(Job::Alloc<DBJob::CreateCharacter>(
-		info.id, 
-		player.id, 
-		info.idx, 
-		info.nickname, 
-		info.modelId, 
-		info.weaponId
-	));
 
-	SendPacket(player.SessionId(), Make_S_CREATE_CHARACTER(true));
+	uint64 playerId = player.id;
+	uint64 sessionId = player.SessionId();
+
+	DBWriter::Write(
+		Job::Alloc([this, info, playerId, sessionId]
+			{
+				mysqlx::Schema sch = GetSqlSession().getSchema("game");
+
+				try
+				{
+					sch.getTable("character")
+						.insert("id", "player_id", "idx", "nickname", "model_id", "weapon_id")
+						.values(info.id, playerId, info.idx, info.nickname, info.modelId, info.weaponId)
+						.execute();
+				}
+				catch (const mysqlx::Error& e)
+				{
+					cout << e << endl;
+				}
+
+				SendPacket(sessionId, Make_S_CREATE_CHARACTER(true));
+			}
+		)
+	);
+
+
+
 }
 
 void LobbyGroup::Handle_C_GAME_ENTER(Player& player, uint64 characterId, int32 idx)

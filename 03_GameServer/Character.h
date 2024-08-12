@@ -7,7 +7,23 @@ class Player;
 
 class Character : public GameObject, enable_object_pooling
 {
+public:
+	int32 MaxHp() const
+	{
+		return _maxHp;
+	}
 
+	int32 MaxMp() const
+	{
+		return _maxMp;
+	}
+
+	int32 Mp() const
+	{
+		return _mp;
+	}
+
+private:
 	friend Player;
 
 	REGISTER_INHERITANCE(Character)
@@ -33,6 +49,8 @@ public:
 		_target = targetPos;
 	}
 
+	void DecreaseHp(int32 amount);
+
 private:
 	uint64	_id;
 	uint64	_playerId;
@@ -40,7 +58,10 @@ private:
 	wstring _nickname;
 	int32	_level;
 	int32	_exp;
+	int32	_maxHp;
 	int32	_hp;
+	int32	_maxMp;
+	int32	_mp;
 	int32	_speed;
 	int32	_modelId;
 	int32	_weaponId;
@@ -103,6 +124,12 @@ public:
 	int32 FieldId() const
 	{
 		return _fieldId;
+	}
+
+	int32 IncreaseExp(int32 val)
+	{
+		_exp += val;
+		return _exp;
 	}
 
 	const Eigen::Vector2<float32>& Target()

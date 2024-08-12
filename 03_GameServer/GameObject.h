@@ -48,6 +48,8 @@ public:
 	template <typename T>
 	bool ExecuteForEachObject(int32 sectorRange, std::function<void(T*)>&& func);
 
+	virtual void OnSpawnRequest(const list<GameHost*>& sessionList) {}
+	virtual void OnDestroyRequest(const list<GameHost*>& sessionList) {}
 
 protected:
 	float32 DeltaTime();
@@ -66,12 +68,10 @@ protected:
 
 	void MoveTowards(const Eigen::Vector2<float32>& target, float32 maxDistance);
 	void LookAt(const Eigen::Vector2<float32>& target);
-
 	virtual void OnUpdate() {}
 	// virtual void OnSectorLeave(int32 sectorRange) {}
 	// virtual void OnSectorEnter(int32 sectorRange) {}
-	virtual void OnSpawnRequest(const list<GameHost*>& sessionList) {}
-	virtual void OnDestroyRequest(const list<GameHost*>& sessionList) {}
+
 
 
 public:

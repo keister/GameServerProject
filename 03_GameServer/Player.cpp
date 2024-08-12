@@ -14,7 +14,7 @@ CharacterInfo& Player::AddCharacter(mysqlx::Row& queryResult)
 {
 	//Character* character = Character::Factory::Create(queryResult);
 
-	int32 index = queryResult[2].get<int32>();
+	int32 index = queryResult[1].get<int32>();
 	Character::Factory::Create(&characterInfos[index], queryResult);
 	numCharacters++;
 

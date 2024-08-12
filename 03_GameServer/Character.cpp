@@ -4,6 +4,7 @@
 #include "SqlSession.h"
 #include <numbers>
 
+#include "ObjectType.h"
 #include "PacketHandler.h"
 #include "Player.h"
 
@@ -33,17 +34,20 @@ Character::Factory& Character::Factory::Instance()
 void Character::Factory::Create(CharacterInfo* info, mysqlx::Row& queryResult)
 {
 	info->id = queryResult[0].get<uint64>();
-	info->idx = queryResult[2].get<int32>();
-	info->nickname = queryResult[3].get<wstring>();
-	info->level = queryResult[4].get<int32>();
-	info->exp = queryResult[5].get<int32>();
-	info->pos.y() = queryResult[6].get<float32>();
-	info->pos.x() = queryResult[7].get<float32>();
+	info->idx = queryResult[1].get<int32>();
+	info->nickname = queryResult[2].get<wstring>();
+	info->level = queryResult[3].get<int32>();
+	info->exp = queryResult[4].get<int32>();
+	info->pos.y() = queryResult[5].get<float32>();
+	info->pos.x() = queryResult[6].get<float32>();
+	info->maxHp = queryResult[7].get<int32>();
 	info->hp = queryResult[8].get<int32>();
-	info->speed = queryResult[9].get<int32>();
-	info->modelId = queryResult[10].get<int32>();
-	info->weaponId = queryResult[11].get<int32>();
-	info->fieldId = queryResult[12].get<int32>();
+	info->maxMp = queryResult[9].get<int32>();
+	info->mp = queryResult[10].get<int32>();
+	info->speed = queryResult[11].get<int32>();
+	info->modelId = queryResult[12].get<int32>();
+	info->weaponId = queryResult[13].get<int32>();
+	info->fieldId = queryResult[14].get<int32>();
 }
 
 void Character::Factory::Create(CharacterInfo* info, uint64 playerId, int32 idx, const wstring& nickname, int32 modelId, int32 weaponId)
@@ -60,6 +64,9 @@ void Character::Factory::Create(CharacterInfo* info, uint64 playerId, int32 idx,
 	info->pos.y() = 0;
 	info->pos.x() = 0;
 	info->hp = 100;
+	info->maxHp = 100;
+	info->maxMp = 100;
+	info->mp = 100;
 	info->speed = 1;
 	info->fieldId = 0;
 
@@ -80,10 +87,22 @@ Character::Character(uint64 playerId, CharacterInfo& info)
 	_weaponId = info.weaponId;
 	_level = info.level;
 	_exp = info.exp;
+	_maxHp = info.maxHp;
 	_hp = info.hp;
+	_maxMp = info.maxMp;
+	_mp = info.mp;
 	_speed = info.speed;
 	_fieldId = info.fieldId;
 	_target = position;
+}
+
+void Character::DecreaseHp(int32 amount)
+{
+	_hp -= amount;
+
+	Packet pkt = Make_S_DAMAGE((uint8)ObjectType::PLAYER, _playerId, _hp);
+
+	SendPacket(AROUND, pkt);
 }
 
 void Character::OnUpdate()
@@ -99,14 +118,17 @@ void Character::OnSpawnRequest(const list<GameHost*>& sessionList)
 		_level,
 		position.y(),
 		position.x(),
+		_maxHp,
 		_hp,
+		_maxMp,
+		_mp,
 		_speed,
 		_modelId,
 		_weaponId,
 		yaw
 	);
 
-	Packet movePacket = Make_S_MOVE_OTHER(_playerId, _target.y(), _target.x());
+	Packet movePacket = Make_S_MOVE(_playerId, _target.y(), _target.x());
 
 	for (GameHost* host : sessionList)
 	{

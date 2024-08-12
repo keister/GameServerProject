@@ -1,0 +1,1 @@
+[ERR] [2024-08-03 16:34:25 / 00000000] DB Fail : CDK Error: After seeing 'id,', looking at ' idx, nic...': Invalid characters in projection specification, only AS <name> allowed after the projection expression (cdk:8)

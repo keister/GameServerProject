@@ -10,16 +10,25 @@ public:
 
 
 	Monster(uint64 id, int32 attackDamage, int32 speed, int32 maxHp);
+	void SetSpawnPoint(const Position& point)
+	{
+		_spawnPoint = point;
+	}
 
-protected:
+	const Position& GetSpawnPoint()
+	{
+		return _spawnPoint;
+	}
 	void OnUpdate() override;
 	void OnSpawnRequest(const list<GameHost*>& sessionList) override;
 	void OnDestroyRequest(const list<GameHost*>& sessionList) override;
-	//~Monster() override;
 
-	//void OnUpdate() override;
-	//void OnSectorLeave(int32 sectorRange) override;
-	//void OnSectorEnter(int32 sectorRange) override;
+protected:
+
+	void MoveToSpawnPoint()
+	{
+		position = _spawnPoint;
+	}
 
 public:
 	uint64 id;
@@ -28,7 +37,11 @@ public:
 	int32 hp;
 	int32 attackDamage;
 	int32 speed;
-
 	Character* target = nullptr;
+
+
+private:
+	float32 _attackTimer;
+	Position _spawnPoint;
 };
 

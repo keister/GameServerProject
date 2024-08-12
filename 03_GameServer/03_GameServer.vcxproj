@@ -21,6 +21,7 @@
     <ClCompile Include="LoginGroup.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Map.cpp" />
+    <ClCompile Include="MapExporter.cpp" />
     <ClCompile Include="Monster.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
     <ClCompile Include="Player.cpp" />
@@ -47,6 +48,7 @@
     <ClInclude Include="LobbyGroup.h" />
     <ClInclude Include="LoginGroup.h" />
     <ClInclude Include="Map.h" />
+    <ClInclude Include="MapExporter.h" />
     <ClInclude Include="Monster.h" />
     <ClInclude Include="ObjectType.h" />
     <ClInclude Include="PacketHandler.h" />

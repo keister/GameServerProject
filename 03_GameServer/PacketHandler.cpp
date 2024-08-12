@@ -13,14 +13,14 @@
 RawPacket& operator<< (RawPacket& pkt, const Dto_S_GET_CHARACTER_LIST& value)
 {
 
-	pkt << value.id << value.nickname << value.level << value.modelId << value.weaponId;
+	pkt << value.id << value.nickname << value.level << value.modelId << value.weaponId << value.fieldId;
 
 	return pkt;
 }
 RawPacket& operator>> (RawPacket& pkt, Dto_S_GET_CHARACTER_LIST& value)
 {
 
-	pkt << value.id >> value.nickname >> value.level >> value.modelId >> value.weaponId;
+	pkt << value.id >> value.nickname >> value.level >> value.modelId >> value.weaponId >> value.fieldId;
 
 	return pkt;
 }
@@ -142,21 +142,21 @@ Packet Make_S_CREATE_CHARACTER(const bool status)
 
 	return pkt;
 }
-Packet Make_S_GAME_ENTER(const uint64 characterId, const wstring& nickname, const int32 level, const int32 exp, const float32 y, const float32 x, const int32 hp, const int32 speed, const int32 fieldId)
+Packet Make_S_GAME_ENTER(const uint64 playerId, const uint64 characterId)
 {
 	Packet pkt = Packet::Alloc();
 
 	*pkt << PacketType::S_GAME_ENTER;
-	*pkt << characterId << nickname << level << exp << y << x << hp << speed << fieldId;
+	*pkt << playerId << characterId;
 
 	return pkt;
 }
-Packet Make_S_SPAWN_CHARACTER(const uint64 playerId, const wstring& nickname, const int32 level, const float32 y, const float32 x, const int32 hp, const int32 speed, const int32 modelId, const int32 weaponId, const float32 rotation)
+Packet Make_S_SPAWN_CHARACTER(const uint64 playerId, const wstring& nickname, const int32 level, const float32 y, const float32 x, const int32 maxHp, const int32 hp, const int32 maxMp, const int32 mp, const int32 speed, const int32 modelId, const int32 weaponId, const float32 rotation)
 {
 	Packet pkt = Packet::Alloc();
 
 	*pkt << PacketType::S_SPAWN_CHARACTER;
-	*pkt << playerId << nickname << level << y << x << hp << speed << modelId << weaponId << rotation;
+	*pkt << playerId << nickname << level << y << x << maxHp << hp << maxMp << mp << speed << modelId << weaponId << rotation;
 
 	return pkt;
 }
@@ -169,38 +169,20 @@ Packet Make_S_DESTROY_CHARACTER(const uint64 playerId)
 
 	return pkt;
 }
-Packet Make_S_MOVE(const float32 y, const float32 x)
+Packet Make_S_MOVE(const uint64 playerId, const float32 y, const float32 x)
 {
 	Packet pkt = Packet::Alloc();
 
 	*pkt << PacketType::S_MOVE;
-	*pkt << y << x;
-
-	return pkt;
-}
-Packet Make_S_MOVE_OTHER(const uint64 playerId, const float32 y, const float32 x)
-{
-	Packet pkt = Packet::Alloc();
-
-	*pkt << PacketType::S_MOVE_OTHER;
 	*pkt << playerId << y << x;
 
 	return pkt;
 }
-Packet Make_S_SKILL(const uint32 skillId, const float32 targetY, const float32 targetX, const float32 posY, const float32 posX)
+Packet Make_S_SKILL(const uint64 playerId, const uint32 skillId, const float32 targetY, const float32 targetX, const float32 posY, const float32 posX)
 {
 	Packet pkt = Packet::Alloc();
 
 	*pkt << PacketType::S_SKILL;
-	*pkt << skillId << targetY << targetX << posY << posX;
-
-	return pkt;
-}
-Packet Make_S_SKILL_OTHER(const uint64 playerId, const uint32 skillId, const float32 targetY, const float32 targetX, const float32 posY, const float32 posX)
-{
-	Packet pkt = Packet::Alloc();
-
-	*pkt << PacketType::S_SKILL_OTHER;
 	*pkt << playerId << skillId << targetY << targetX << posY << posX;
 
 	return pkt;
@@ -232,12 +214,21 @@ Packet Make_S_MOVE_OBJECT(const uint8 type, const uint64 id, const float32 y, co
 
 	return pkt;
 }
-Packet Make_S_DAMAGE(const uint64 id, const int32 hp)
+Packet Make_S_DAMAGE(const uint8 type, const uint64 id, const int32 hp)
 {
 	Packet pkt = Packet::Alloc();
 
 	*pkt << PacketType::S_DAMAGE;
-	*pkt << id << hp;
+	*pkt << type << id << hp;
+
+	return pkt;
+}
+Packet Make_S_EXP(const int32 curExp)
+{
+	Packet pkt = Packet::Alloc();
+
+	*pkt << PacketType::S_EXP;
+	*pkt << curExp;
 
 	return pkt;
 }

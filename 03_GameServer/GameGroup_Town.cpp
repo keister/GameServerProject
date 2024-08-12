@@ -27,8 +27,8 @@ void GameGroup_Town::Handle_C_MOVE(Player& player, float32 y, float32 x)
 	Character* character = player.curCharacter;
 	character->SetTargetPos({ x, y });
 
-	SendPacket(player.SessionId(), Make_S_MOVE(y, x));
-	character->SendPacket(AROUND, Make_S_MOVE_OTHER(player.id, y, x), player.SessionId());
+	character->SendPacket(AROUND, Make_S_MOVE(player.id, y, x));
+	//character->SendPacket(AROUND, Make_S_MOVE_OTHER(player.id, y, x), player.SessionId());
 }
 
 void GameGroup_Town::Handle_C_SKILL(Player& player, uint64 objectId, uint32 skillId)
@@ -38,18 +38,18 @@ void GameGroup_Town::Handle_C_SKILL(Player& player, uint64 objectId, uint32 skil
 	character->SetTargetPos(character->position);
 	if (monster == nullptr)
 	{
-		SendPacket(player.SessionId(), Make_S_SKILL(skillId, character->position.y(), character->position.x(), character->position.y(), character->position.x()));
+		character->SendPacket(AROUND, Make_S_SKILL(player.id, skillId, character->position.y(), character->position.x(), character->position.y(), character->position.x()));
 
-		character->SendPacket(AROUND, Make_S_SKILL_OTHER(player.id, skillId, character->position.y(), character->position.x(), character->position.y(), character->position.x()), player.SessionId());
+		//character->SendPacket(AROUND, Make_S_SKILL_OTHER(player.id, skillId, character->position.y(), character->position.x(), character->position.y(), character->position.x()), player.SessionId());
 		return;
 	}
 
 	//Eigen::Vector2<float32> targetPos = { 0, 0 };
 
 
-	SendPacket(player.SessionId(), Make_S_SKILL(skillId, monster->position.y(), monster->position.x(), character->position.y(), character->position.x()));
+	character->SendPacket(AROUND, Make_S_SKILL(player.id, skillId, monster->position.y(), monster->position.x(), character->position.y(), character->position.x()));
 
-	character->SendPacket(AROUND, Make_S_SKILL_OTHER(player.id, skillId, monster->position.y(), monster->position.x(), character->position.y(), character->position.x()),player.SessionId());
+	//character->SendPacket(AROUND, Make_S_SKILL_OTHER(player.id, skillId, monster->position.y(), monster->position.x(), character->position.y(), character->position.x()),player.SessionId());
 
 	float32 distance = (character->position - monster->position).norm();
 
@@ -62,10 +62,12 @@ void GameGroup_Town::Handle_C_SKILL(Player& player, uint64 objectId, uint32 skil
 		{
 			monster->target = player.curCharacter;
 		}
-		monster->SendPacket(AROUND, Make_S_DAMAGE(objectId, hp));
+		monster->SendPacket(AROUND, Make_S_DAMAGE((uint8)ObjectType::MONSTER, objectId, hp));
 
 		if (monster->hp <= 0)
 		{
+			character->IncreaseExp(6);
+			SendPacket(player.SessionId(), Make_S_EXP(character->Exp()));
 			_field->DestroyMonster(monster);
 		}
 	}
@@ -78,7 +80,10 @@ GameGroup_Town::GameGroup_Town()
 
 	_field = CreateFixedObject<FieldManager>();
 
-	_field->SetSpawnPoint(1, { 10.f, 10.f });
+	_field->SetSpawnPoint(1, { 20.f, 20.f });
+	_field->SetSpawnPoint(1, { 25.f, 20.f });
+	_field->SetSpawnPoint(1, { 24.f, 24.f });
+	_field->SetSpawnPoint(1, { 18.f, 29.f });
 
 
 	// DestroyObject(monster);
@@ -103,67 +108,25 @@ void GameGroup_Town::OnPlayerEnter(Player& player)
 	player.curCharacter = character;
 
 	SendPacket(player.SessionId(), Make_S_GAME_ENTER(
-		character->Id(),
-		character->Nickname(),
-		character->Level(),
-		character->Exp(),
-		character->position.y(),
-		character->position.x(),
-		character->Hp(),
-		character->Speed(),
-		character->FieldId()
+		player.id,
+		character->Id()
 	));
 
-	// player.GetGameObject()->SendPacket(AROUND,
-	// 	Make_S_SPAWN_CHARACTER(
-	// 		player.id,
-	// 		character->Nickname(),
-	// 		character->Level(),
-	// 		character->position.y(),
-	// 		character->position.x(),
-	// 		character->Hp(),
-	// 		character->Speed(),
-	// 		character->ModelId(),
-	// 		character->WeaponId(),
-	// 		character->yaw
-	// 	), player.SessionId());
-	//
-	// player.GetGameObject()->ExecuteForEachHost<Player>(AROUND,
-	// 	[this, &player](Player* p)
-	// 	{
-	// 		if (&player == p)
-	// 		{
-	// 			return;
-	// 		}
-	// 		Character* playerCharater = p->curCharacter;
-	//
-	// 		SendPacket(p->SessionId(), Make_S_SPAWN_CHARACTER(
-	// 			p->id,
-	// 			playerCharater->Nickname(),
-	// 			playerCharater->Level(),
-	// 			playerCharater->position.y(),
-	// 			playerCharater->position.x(),
-	// 			playerCharater->Hp(),
-	// 			playerCharater->Speed(),
-	// 			playerCharater->ModelId(),
-	// 			playerCharater->WeaponId(),
-	// 			playerCharater->yaw
-	// 		));
-	// 	});
-	//
-	// player.GetGameObject()->ExecuteForEachObject<Monster>(AROUND,
-	// 		[this, &player] (Monster* monster)
-	// 		{
-	// 		SendPacket(player.SessionId(), Make_S_SPAWN_MONSTER(
-	// 			monster->id,
-	// 			monster->monsterId,
-	// 			monster->hp,
-	// 			monster->speed,
-	// 			monster->position.y(),
-	// 			monster->position.x()
-	// 		));
-	// 		}
-	// 	);
+	SendPacket(player.SessionId(), Make_S_SPAWN_CHARACTER(
+		player.id,
+		character->Nickname(),
+		character->Level(),
+		character->position.y(),
+		character->position.x(),
+		character->MaxHp(),
+		character->Hp(),
+		character->MaxMp(),
+		character->Mp(),
+		character->Speed(),
+		character->ModelId(),
+		character->WeaponId(),
+		character->yaw
+	));
 }
 
 void GameGroup_Town::OnPlayerLeave(Player& player)

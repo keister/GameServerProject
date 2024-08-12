@@ -6,18 +6,33 @@
 #include "PacketHandler.h"
 
 
-Monster::Monster(uint64 id, int32 attackDamage, int32 speed,int32 maxHp)
-	: id(id), attackDamage(attackDamage), speed(speed), hp(maxHp), maxHp(maxHp)
+Monster::Monster(uint64 id, int32 attackDamage, int32 speed, int32 maxHp)
+	: id(id), attackDamage(attackDamage), speed(speed), hp(maxHp), maxHp(maxHp), _attackTimer(0.f)
 {
-	
+
 
 }
 
 void Monster::OnUpdate()
 {
+
+	_attackTimer += DeltaTime();
+
 	if (target != nullptr)
 	{
-		MoveTowards(target->position, speed * DeltaTime());
+		float32 distance = (position - target->position).norm();
+		if (distance >= 1.5)
+		{
+			MoveTowards(target->position, speed * DeltaTime());
+		}
+		else
+		{
+			if (_attackTimer >= 2.f)
+			{
+				target->DecreaseHp(3);
+				_attackTimer = 0.f;
+			}
+		}
 	}
 
 	Packet movePacket = Make_S_MOVE_OBJECT(

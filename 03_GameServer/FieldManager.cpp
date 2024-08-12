@@ -12,17 +12,22 @@ void FieldManager::SetSpawnPoint(uint64 id, const Position& spawnPoint)
 	uint64 uid = InterlockedIncrement64((LONG64*)&monsterIdGenerator);
 
 	Monster* monster = CreateObject<Monster>(spawnPoint, uid, 10, 2, 100);
+	monster->SetSpawnPoint(spawnPoint);
 	_monsters.insert({ uid, monster });
 
 }
 
 void FieldManager::DestroyMonster(Monster* monster)
 {
-	Invoke([this, monster]()
+	Position spawnPoint = monster->GetSpawnPoint();
+
+	Invoke([this, spawnPoint]()
 		{
 			uint64 uid = InterlockedIncrement64((LONG64*)&monsterIdGenerator);
-			_monsters.insert({ uid, CreateObject<Monster>(monster->position, uid, 10, 2, 100) });
-			
+			Monster* newMonster = CreateObject<Monster>(spawnPoint, uid, 10, 2, 100);
+			newMonster->SetSpawnPoint(spawnPoint);
+			_monsters.insert({ uid, newMonster });
+
 		}, 5.f);
 
 	_monsters.erase(monster->id);
