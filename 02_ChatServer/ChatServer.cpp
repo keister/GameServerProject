@@ -8,9 +8,11 @@
 #include "SqlSession.h"
 #include "Common/Token.h"
 
+class ServerBase;
+
 ChatServer::ChatServer(const wstring& name)
-	: ServerBase(name)
-	, _dbRead(2)
+	: ::ServerBase(name)
+	  , _dbRead(2)
 {
 	_redis = new RedisSession();
 	bool ret = _redis->connect("procademyserver.iptime.org", 11772, "", 3000);

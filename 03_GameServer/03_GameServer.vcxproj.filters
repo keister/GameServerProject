@@ -84,7 +84,12 @@
       <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="InheritanceReflection.cpp" />
-    <ClCompile Include="MapExporter.cpp" />
+    <ClCompile Include="MapManager.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="MapData.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -151,6 +156,11 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="InheritanceReflection.h" />
-    <ClInclude Include="MapExporter.h" />
+    <ClInclude Include="MapManager.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="MapData.h">
+      <Filter>Util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

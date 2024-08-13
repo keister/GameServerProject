@@ -21,7 +21,8 @@
     <ClCompile Include="LoginGroup.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Map.cpp" />
-    <ClCompile Include="MapExporter.cpp" />
+    <ClCompile Include="MapData.cpp" />
+    <ClCompile Include="MapManager.cpp" />
     <ClCompile Include="Monster.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
     <ClCompile Include="Player.cpp" />
@@ -48,7 +49,8 @@
     <ClInclude Include="LobbyGroup.h" />
     <ClInclude Include="LoginGroup.h" />
     <ClInclude Include="Map.h" />
-    <ClInclude Include="MapExporter.h" />
+    <ClInclude Include="MapData.h" />
+    <ClInclude Include="MapManager.h" />
     <ClInclude Include="Monster.h" />
     <ClInclude Include="ObjectType.h" />
     <ClInclude Include="PacketHandler.h" />
@@ -101,7 +103,7 @@
       <Optimization>Disabled</Optimization>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(SolutionDir)Libs\MySQL\include\;D:\Portfolio\ServerLibrary;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Libs\MySQL\include\;C:\hojun\ServerLibrary\;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
     </ClCompile>
     <Link>
