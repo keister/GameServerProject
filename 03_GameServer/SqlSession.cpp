@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "SqlSession.h"
 
+#include "common/AppSettings.h"
+
 namespace
 {
 	DWORD sqlSessionTlsIndex = TlsAlloc();
@@ -12,7 +14,8 @@ SqlSession& GetSqlSession()
 
 	if (session == nullptr)
 	{
-		session = new SqlSession("procademyserver.iptime.org", 11771, "remote", "!Khj378400", "game");
+		session = new SqlSession(AppSettings::GetSection("MySql")["uri"].get<string>());
+
 		TlsSetValue(sqlSessionTlsIndex, session);
 	}
 

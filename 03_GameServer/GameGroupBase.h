@@ -22,7 +22,7 @@ public:
 	void SetServer(GameServer* server);
 	uint64 GetPlayerCount() { return _players.size(); }
 
-	bool CreateMap(int32 width, int32 height, int32 sectorWidth, int32 sectorHeight);
+	bool CreateMap(const char* fileName, int32 sectorWidth, int32 sectorHeight);
 
 	template <typename T, typename ...Args>
 	T* CreateObject(const Eigen::Vector2<float32>& pos, Args&&... args);

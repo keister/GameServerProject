@@ -10,13 +10,13 @@ void GameGroupBase::SetServer(GameServer* server)
 	_server = server;
 }
 
-bool GameGroupBase::CreateMap(int32 width, int32 height, int32 sectorWidth, int32 sectorHeight)
+bool GameGroupBase::CreateMap(const char* fileName, int32 sectorWidth, int32 sectorHeight)
 {
 	if (_map != nullptr)
 		return false;
 
 
-	_map = new Map(this, width, height, sectorWidth, sectorHeight);
+	_map = new Map(this, fileName, sectorWidth, sectorHeight);
 
 	return true;
 }

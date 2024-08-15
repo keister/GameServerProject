@@ -5,6 +5,7 @@ VisualStudioVersion = 17.10.34916.146
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{C050E134-C94B-4992-829D-DD234D745510}"
 	ProjectSection(SolutionItems) = preProject
+		Common\AppSettings.h = Common\AppSettings.h
 		Common\PacketDefine.h = Common\PacketDefine.h
 		Common\Token.h = Common\Token.h
 	EndProjectSection

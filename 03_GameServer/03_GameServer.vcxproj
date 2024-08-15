@@ -22,16 +22,14 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="MapData.cpp" />
-    <ClCompile Include="MapManager.cpp" />
     <ClCompile Include="Monster.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
+    <ClCompile Include="PathFinder.cpp" />
     <ClCompile Include="Player.cpp" />
-    <ClCompile Include="SpawnManager.cpp" />
     <ClCompile Include="SqlSession.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Transform.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Character.h" />
@@ -50,16 +48,14 @@
     <ClInclude Include="LoginGroup.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="MapData.h" />
-    <ClInclude Include="MapManager.h" />
     <ClInclude Include="Monster.h" />
     <ClInclude Include="ObjectType.h" />
     <ClInclude Include="PacketHandler.h" />
+    <ClInclude Include="PathFinder.h" />
     <ClInclude Include="Player.h" />
-    <ClInclude Include="SpawnManager.h" />
     <ClInclude Include="SqlSession.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TimerEvent.h" />
-    <ClInclude Include="Transform.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -103,7 +99,7 @@
       <Optimization>Disabled</Optimization>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(SolutionDir)Libs\MySQL\include\;C:\hojun\ServerLibrary\;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Libs\MySQL\include\;D:\Portfolio\ServerLibrary;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
     </ClCompile>
     <Link>

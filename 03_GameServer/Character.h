@@ -5,6 +5,9 @@
 struct CharacterInfo;
 class Player;
 
+template <typename T>
+struct Node;
+
 class Character : public GameObject, enable_object_pooling
 {
 public:

@@ -4,18 +4,17 @@
 #include "PacketHandler.h"
 #include "Player.h"
 #include "GameObject.h"
+#include "MapData.h"
 
-Map::Map(GroupBase* group, int32 width, int32 height, int32 sectorWidth, int32 sectorHeight)
-	: _width(width)
-	, _height(height)
+Map::Map(GroupBase* group, const char* fileName, int32 sectorWidth, int32 sectorHeight)
+	: _mapData(new MapData(fileName))
 	, _sectorWidth(sectorWidth)
 	, _sectorHeight(sectorHeight)
-	, _sectorMaxY(_height / sectorHeight)
-	, _sectorMaxX(_width / sectorWidth)
+	, _sectorMaxY(_mapData->Height() / sectorHeight)
+	, _sectorMaxX(_mapData->Width() / sectorWidth)
 	, _sectors(_sectorMaxY, vector<SectorInfo>(_sectorMaxX))
 	, _group(group)
 {
-
 	for (int32 y = 0; y < _sectorMaxY; y++)
 	{
 		for (int32 x = 0; x < _sectorMaxX; x++)
@@ -31,6 +30,7 @@ Map::Map(GroupBase* group, int32 width, int32 height, int32 sectorWidth, int32 s
 			SetAroundSectors(y, x);
 		}
 	}
+
 }
 
 void Map::SetAroundSectors(int32 y, int32 x)
@@ -53,6 +53,8 @@ void Map::SetAroundSectors(int32 y, int32 x)
 	info.aroundSectors[8] = info.sector;
 
 }
+
+
 
 void Map::SendPacket(Sector* sector, int32 sectorRange, Packet pkt, list<uint64>& except)
 {

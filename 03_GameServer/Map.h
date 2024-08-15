@@ -2,6 +2,7 @@
 #include "GameHost.h"
 #include "Packet.h"
 #include "InheritanceReflection.h"
+class MapData;
 class GameObject;
 class GameHost;
 class Monster;
@@ -104,7 +105,7 @@ public:
 		vector<Sector*> aroundSectors{ 9, nullptr };
 	};
 
-	Map(GroupBase* group, int32 width, int32 height, int32 sectorWidth, int32 sectorHeight);
+	Map(GroupBase* group, const char* fileName, int32 sectorWidth, int32 sectorHeight);
 
 	void SendPacket(Sector* sector, int32 sectorRange, Packet pkt, list<uint64>& except);
 	void SendPacket(Sector* sector, int32 sectorRange, Packet pkt, uint64 except);
@@ -172,8 +173,6 @@ public:
 
 	bool MoveSector(Player& player);
 
-	int32 Width() const { return _width; }
-	int32 Height() const { return _height; }
 	int32 SectorWidth() const { return _sectorWidth; }
 	int32 SectorHeight() const { return _sectorHeight; }
 	int32 SectorMaxY() const { return _sectorMaxY; }
@@ -183,8 +182,7 @@ private:
 	void SetAroundSectors(int32 y, int32 x);
 
 private:
-	int32 _width;
-	int32 _height;
+	MapData* _mapData;
 	int32 _sectorWidth;
 	int32 _sectorHeight;
 	int32 _sectorMaxY;

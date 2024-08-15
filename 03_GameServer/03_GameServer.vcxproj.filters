@@ -16,9 +16,6 @@
     <Filter Include="Game">
       <UniqueIdentifier>{fa74aedc-e5ae-4e3f-829b-e8384a8a0641}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Job">
-      <UniqueIdentifier>{8e87b7fb-b2b8-479c-becf-8e2879269f76}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core">
       <UniqueIdentifier>{999c90e2-d5aa-4ffa-8d99-2bfb1e25fdef}</UniqueIdentifier>
     </Filter>
@@ -69,7 +66,6 @@
     <ClCompile Include="Monster.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="SpawnManager.cpp" />
     <ClCompile Include="GameGroupBase.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -79,17 +75,16 @@
     <ClCompile Include="GameHost.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Transform.cpp" />
     <ClCompile Include="FieldManager.cpp">
       <Filter>Game</Filter>
-    </ClCompile>
-    <ClCompile Include="InheritanceReflection.cpp" />
-    <ClCompile Include="MapManager.cpp">
-      <Filter>Util</Filter>
     </ClCompile>
     <ClCompile Include="MapData.cpp">
       <Filter>Util</Filter>
     </ClCompile>
+    <ClCompile Include="InheritanceReflection.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="PathFinder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -131,11 +126,9 @@
     <ClInclude Include="Map.h">
       <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectType.h" />
     <ClInclude Include="Monster.h">
       <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="SpawnManager.h" />
     <ClInclude Include="GameGroupBase.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -151,16 +144,18 @@
     <ClInclude Include="GameHost.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Transform.h" />
     <ClInclude Include="FieldManager.h">
       <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="InheritanceReflection.h" />
-    <ClInclude Include="MapManager.h">
-      <Filter>Util</Filter>
     </ClInclude>
     <ClInclude Include="MapData.h">
       <Filter>Util</Filter>
     </ClInclude>
+    <ClInclude Include="ObjectType.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="InheritanceReflection.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="PathFinder.h" />
   </ItemGroup>
 </Project>

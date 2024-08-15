@@ -76,7 +76,7 @@ void GameGroup_Town::Handle_C_SKILL(Player& player, uint64 objectId, uint32 skil
 GameGroup_Town::GameGroup_Town()
 {
 
-	CreateMap(60, 60, 15, 15);
+	CreateMap("./fieldData.mp", 15, 15);
 
 	_field = CreateFixedObject<FieldManager>();
 
