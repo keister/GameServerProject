@@ -5,6 +5,7 @@
 
 
 #include "TimerEvent.h"
+class MapData;
 class FixedObject;
 class Sector;
 struct TimerEvent;
@@ -58,7 +59,7 @@ protected:
 	void delete_player(uint64 sessionId);
 	virtual void OnPlayerEnter(Player& player) {};
 	virtual void OnPlayerLeave(Player& player) {};
-
+	Map* GetMap() { return _map; }
 
 
 

@@ -6,7 +6,8 @@ MapData::MapData(const char* fileName)
 	ifstream f;
 	f.open(fileName, ios_base::binary | ios_base::in);
 
-	f.get((char*)&_width, 4).get((char*)&_height, 4);
+	f.read((char*)&_width, 4);
+	f.read((char*)&_height, 4);
 
 
 	_tiles.resize(_height);
@@ -19,7 +20,7 @@ MapData::MapData(const char* fileName)
 	{
 		for (auto& tile : tileRow)
 		{
-			f.get((char*)&tile, sizeof(TileInfo));
+			f.read((char*)&tile, sizeof(TileInfo));
 		}
 	}
 

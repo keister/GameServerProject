@@ -7,13 +7,13 @@
 
 
 const vector<TilePos> PathFinder::UNIT_VECTOR{
-		TilePos{  1,  0 },
-		TilePos{  1, -1 },
-		TilePos{  0, -1 },
-		TilePos{ -1, -1 },
-		TilePos{ -1,  0 },
-		TilePos{ -1,  1 },
 		TilePos{  0,  1 },
+		TilePos{ -1,  1 },
+		TilePos{ -1,  0 },
+		TilePos{ -1, -1 },
+		TilePos{  0, -1 },
+		TilePos{  1, -1 },
+		TilePos{  1,  0 },
 		TilePos{  1,  1 }
 };
 
@@ -30,6 +30,11 @@ void PathFinder::Execute(Position destination)
 	_destination = { (int)destination.x(), (int)destination.y()};
 	TilePos startPos = { (int)_object->position.x(), (int)_object->position.y() };
 
+	_maxWidth = min((int)_object->position.x() + 30, _mapData->Width());
+	_maxHeight = min((int)_object->position.y() + 30, _mapData->Height());
+	_minWidth = max((int)_object->position.x() - 30, 0);
+	_minHeight = max((int)_object->position.y() - 30, 0);
+
 	double manhattan = (_destination - startPos).lpNorm<1>();
 	TileNode* startNode = _tileNodeAllocator.Alloc();
 	startNode->parent = nullptr;
@@ -38,6 +43,8 @@ void PathFinder::Execute(Position destination)
 	startNode->f = manhattan;
 	startNode->pos = startPos;
 	startNode->validDirFlag = 0xFF;
+	_openNode.push_back(startNode);
+	_openNodeMap.insert(make_pair(startPos, startNode));
 
 	while (!_openNode.empty())
 	{
@@ -47,7 +54,14 @@ void PathFinder::Execute(Position destination)
 		_closeNode.insert(make_pair(cur->pos, cur));
 		if (cur->pos == _destination)
 		{
-			// Å½»ö³¡
+			list<TilePos> l;
+			TileNode* node = cur;
+			while (node->parent != nullptr)
+			{
+				l.push_front(node->pos);
+				node = node->parent;
+			}
+			return;
 		}
 
 		Update(cur);
@@ -138,21 +152,19 @@ uint8 PathFinder::SearchDiagonal(const TilePos& pos, Direction dir, TilePos* nod
 
 		if ((*_mapData)[now + UNIT_VECTOR[(int)RotateClockwise<-90>(splitDir.first)]] == TileInfo::OBSTACLE)
 		{
-			return NO_ROUTE;
+			if ((*_mapData)[now + UNIT_VECTOR[(int)RotateClockwise<90>(splitDir.second)]] == TileInfo::OBSTACLE)
+			{
+				return NO_ROUTE;
+			}
 		}
 
-		if ((*_mapData)[now + UNIT_VECTOR[(int)RotateClockwise<90>(splitDir.second)]] == TileInfo::OBSTACLE)
-		{
-			return NO_ROUTE;
-		}
+		
 
 		if (now == _destination)
 		{
 			*nodePoint = now;
 			return flag;
 		}
-
-
 
 		if (CheckTile(now + UNIT_VECTOR[(int)RotateClockwise<-90>(splitDir.first)], splitDir.first))
 		{
@@ -167,6 +179,7 @@ uint8 PathFinder::SearchDiagonal(const TilePos& pos, Direction dir, TilePos* nod
 		if (flag != 0)
 		{
 			flag << dir << splitDir.first << splitDir.second;
+			*nodePoint = now;
 			return flag;
 		}
 

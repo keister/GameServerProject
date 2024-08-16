@@ -111,6 +111,11 @@ public:
 	void SendPacket(Sector* sector, int32 sectorRange, Packet pkt, uint64 except);
 	void SendPacket(Sector* sector, int32 sectorRange, Packet pkt);
 
+	MapData* GetData()
+	{
+		return _mapData;
+	}
+
 	Sector* GetSector(int32 y, int32 x)
 	{
 		return _sectors[y][x].sector;

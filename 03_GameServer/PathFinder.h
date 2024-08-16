@@ -63,7 +63,7 @@ public:
 
 		if constexpr ( Degree / 45 < 0)
 		{
-			return static_cast<Direction>(((static_cast<int>(dir) - Degree / 45) + 8) % 8);
+			return static_cast<Direction>(((static_cast<int>(dir) + Degree / 45) + 8) % 8);
 		}
 		else
 		{
@@ -87,7 +87,12 @@ public:
 	}
 
 
-	PathFinder() {};
+	PathFinder(MapData* map, GameObject* gameObject)
+	{
+		_mapData = map;
+		_object = gameObject;
+
+	};
 	void Execute(Position destination);
 	bool IsInRange(const TilePos& pos);
 	void Update(TileNode* node);
@@ -119,7 +124,7 @@ private:
 
 inline uint8& operator<<(uint8& flag, PathFinder::Direction dir)
 {
-	flag = flag | (1 << (int)dir);
+	flag = flag | ((uint8)(1) << (int)dir);
 
 	return flag;
 }

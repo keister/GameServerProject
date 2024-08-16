@@ -9,6 +9,7 @@
 #include "FieldManager.h"
 #include "Monster.h"
 #include "ObjectType.h"
+#include "PathFinder.h"
 #include "Common/PacketDefine.h"
 
 void GameGroup_Town::OnRecv(uint64 sessionId, Packet packet)
@@ -26,6 +27,9 @@ void GameGroup_Town::Handle_C_MOVE(Player& player, float32 y, float32 x)
 {
 	Character* character = player.curCharacter;
 	character->SetTargetPos({ x, y });
+
+	PathFinder test(GetMap()->GetData(), character);
+	test.Execute({ x, y });
 
 	character->SendPacket(AROUND, Make_S_MOVE(player.id, y, x));
 	//character->SendPacket(AROUND, Make_S_MOVE_OTHER(player.id, y, x), player.SessionId());
