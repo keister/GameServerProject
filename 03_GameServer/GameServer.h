@@ -57,6 +57,11 @@ public:
 
 	bool GetToken(uint64 accountId, Token& token);
 
+	GameGroupBase* GetGroup(Groups group)
+	{
+		return _groups[(int32)group];
+	}
+
 	uint64 GetPlayerCount(Groups group)
 	{
 		return _groups[(int32)group]->GetPlayerCount();

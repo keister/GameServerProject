@@ -3,9 +3,9 @@
 enum class Groups
 {
 	TOWN,
+	CEMETERY,
 	LOGIN,
 	LOBBY,
 	FIELD,
-	PVP,
 	NUM_GROUPS,
 };

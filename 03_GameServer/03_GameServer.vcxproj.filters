@@ -22,6 +22,9 @@
     <Filter Include="Util">
       <UniqueIdentifier>{60133a3a-fcea-4a7c-a2d7-79f89b7e2506}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Test">
+      <UniqueIdentifier>{0dc05f0c-b19b-4ac8-a7a5-42c7a4853b83}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -84,7 +87,18 @@
     <ClCompile Include="InheritanceReflection.cpp">
       <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="PathFinder.cpp" />
+    <ClCompile Include="PathFinder.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="PathReceiver.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="PathFindingWorker.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Route.cpp" />
+    <ClCompile Include="PathFindingTestObject.cpp" />
+    <ClCompile Include="MonsterData.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -129,9 +143,6 @@
     <ClInclude Include="Monster.h">
       <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="GameGroupBase.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="GlobalPool.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -156,6 +167,20 @@
     <ClInclude Include="InheritanceReflection.h">
       <Filter>Util</Filter>
     </ClInclude>
-    <ClInclude Include="PathFinder.h" />
+    <ClInclude Include="PathFinder.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="PathReceiver.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="GameGroupBase.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="PathFindingWorker.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Route.h" />
+    <ClInclude Include="PathFindingTestObject.h" />
+    <ClInclude Include="MonsterData.h" />
   </ItemGroup>
 </Project>

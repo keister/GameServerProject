@@ -17,7 +17,10 @@ int main()
 	uint64 prevAcceptCount = 0;
 	uint64 prevSendCount = 0;
 	uint64 prevRecvCount = 0;
-	uint64 prevFrame = 0;
+	uint64 prevFrameca = 0;
+	uint64 prevFrameCe = 0;
+	uint64 prevPfCe = 0;
+	uint64 prevPfca = 0;
 	server.Start();
 
 	DWORD idealTime = timeGetTime();
@@ -38,11 +41,13 @@ int main()
 		uint64 acceptCount = server.GetAcceptCount();
 		uint64 sendCount = server.GetSendMessageCount();
 		uint64 recvCount = server.GetRecvMessageCount();
-		uint64 frame = server.GetFrameCount(Groups::TOWN);
-
+		uint64 frameCa = server.GetFrameCount(Groups::TOWN);
+		uint64 frameCe = server.GetFrameCount(Groups::CEMETERY);
+		uint64 pfCountCa = server.GetGroup(Groups::TOWN)->GetMap()->GetTotalPathFindingCount();
+		uint64 pfCountCe = server.GetGroup(Groups::CEMETERY)->GetMap()->GetTotalPathFindingCount();
 		cout <<
 			std::format(
-				"\n\n\n\n\n\n"
+				"\n\n\n\n"
 				"Q : QUIT | G : PROFILE SAVE\n"
 				"=======================================\n"
 				" Disconnect Total : {}\n"
@@ -56,9 +61,14 @@ int main()
 				"=======================================\n"
 				"            LOGIN : {}\n"
 				"            LOBBY : {}\n"
-				"             TOWN : {} / {}\n"
 				"=======================================\n"
-				"\n\n\n\n\n\n"
+				"             |  Canyon  | Cemetery |\n"
+				"FPS          : {:<8} | {:<8} |\n"
+				"Players      : {:<8} | {:<8} |\n"
+				"Objects      : {:<8} | {:<8} |\n"
+				"Path Finding : {:<8} | {:<8} |\n"
+				"=======================================\n"
+				"\n\n\n\n"
 				, server.GetReleaseTotal()
 				, acceptCount
 				, acceptCount - prevAcceptCount
@@ -69,14 +79,20 @@ int main()
 				, server.GetSessionCount()
 				, server.GetPlayerCount(Groups::LOGIN)
 				, server.GetPlayerCount(Groups::LOBBY)
-				, server.GetPlayerCount(Groups::TOWN)
-				, frame - prevFrame
+				, frameCa - prevFrameca
+				, frameCe - prevFrameCe
+				, server.GetPlayerCount(Groups::TOWN), server.GetPlayerCount(Groups::CEMETERY)
+				, server.GetGroup(Groups::TOWN)->GetObjectCount(), server.GetGroup(Groups::CEMETERY)->GetObjectCount()
+				, pfCountCa - prevPfca
+				, pfCountCe - prevPfCe
 			);
 		prevAcceptCount = acceptCount;
 		prevSendCount = sendCount;
 		prevRecvCount = recvCount;
-		prevFrame = frame;
-
+		prevFrameca = frameCa;
+		prevPfca = pfCountCa;
+		prevFrameCe = frameCe;
+		prevPfCe = pfCountCe;
 		::Sleep(1000 - overTime);
 		idealTime += 1000;
 		overTime = timeGetTime() - idealTime;

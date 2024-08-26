@@ -5,6 +5,8 @@
 
 
 #include "TimerEvent.h"
+class Route;
+struct RouteNode;
 class MapData;
 class FixedObject;
 class Sector;
@@ -23,6 +25,8 @@ public:
 	void SetServer(GameServer* server);
 	uint64 GetPlayerCount() { return _players.size(); }
 
+	uint64 GetObjectCount() { return _gameObjects.size(); }
+
 	bool CreateMap(const char* fileName, int32 sectorWidth, int32 sectorHeight);
 
 	template <typename T, typename ...Args>
@@ -35,8 +39,8 @@ public:
 
 	void DestroyFixedObject(FixedObject* object);
 
-	void Invoke(function<void()>&& func, DWORD afterTick);
-	void Invoke(function<void()>&& func, float32 afterTime);
+	void Invoke(BaseObject* object, function<void()>&& func, DWORD afterTick);
+	void Invoke(BaseObject* object, function<void()>&& func, float32 afterTime);
 
 	Sector* FindSectorByPostion(float32 x, float32 y);
 
@@ -50,6 +54,8 @@ public:
 
 	template <typename T>
 	bool ExecuteForEachObject(Sector* sector, int32 sectorRange, std::function<void(T*)>&& func);
+	void PathFindingCompletionRoutine(GameObject* gameObject, uint64 objectId, uint64 execCount, Route& route);
+	Map* GetMap() { return _map; }
 
 protected:
 	void ReleaseObject(GameObject* object);
@@ -59,7 +65,7 @@ protected:
 	void delete_player(uint64 sessionId);
 	virtual void OnPlayerEnter(Player& player) {};
 	virtual void OnPlayerLeave(Player& player) {};
-	Map* GetMap() { return _map; }
+
 
 
 
@@ -132,16 +138,17 @@ T* GameGroupBase::CreateObject(const Eigen::Vector2<float32>& pos, Args&&... arg
 	}
 	else
 	{
-		ret = new T(args...);
+		ret = (GameObject*)new T(args...);
 		ret->_doPooling = false;
 	}
 
 	ret->_objectId = id;
 	ret->_owner = this;
 	ret->position = pos;
-	ret->_sector = FindSectorByPostion(pos.y(), pos.x());
+	ret->_sector = FindSectorByPostion(pos.x(), pos.y());
 	ret->_sector->InsertObject(ret);
 	ret->yaw = 0.f;
+	ret->_host = nullptr;
 	list<GameHost*> other;
 	ret->ExecuteForEachHost<GameHost>(AROUND,
 		[&other](GameHost* ho)

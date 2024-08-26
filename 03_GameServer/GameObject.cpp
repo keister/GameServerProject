@@ -38,12 +38,12 @@ float32 GameObject::DeltaTime()
 
 void GameObject::Invoke(function<void()>&& func, DWORD afterTick)
 {
-	_owner->Invoke(std::move(func), afterTick);
+	_owner->Invoke(this, std::move(func), afterTick);
 }
 
 void GameObject::Invoke(function<void()>&& func, float32 afterTime)
 {
-	_owner->Invoke(std::move(func), afterTime);
+	_owner->Invoke(this, std::move(func), afterTime);
 }
 
 void GameObject::MovePosition(float32 x, float32 y)
@@ -191,10 +191,10 @@ void FixedObject::DestroyObject(GameObject* object)
 
 void FixedObject::Invoke(function<void()>&& func, DWORD afterTick)
 {
-	_owner->Invoke(std::move(func), afterTick);
+	_owner->Invoke(this, std::move(func), afterTick);
 }
 
 void FixedObject::Invoke(function<void()>&& func, float32 afterTime)
 {
-	_owner->Invoke(std::move(func), afterTime);
+	_owner->Invoke(this, std::move(func), afterTime);
 }

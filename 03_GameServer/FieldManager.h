@@ -10,7 +10,7 @@ class FieldManager : FixedObject
 public:
 	FieldManager() {}
 	~FieldManager() override;
-	void SetSpawnPoint(uint64 id, const Position& spawnPoint);
+	void SetSpawnPoint(uint64 id, const Position& spawnPoint, int32 section);
 	void DestroyMonster(Monster* monster);
 	Monster* FindMonster(uint64 id);
 

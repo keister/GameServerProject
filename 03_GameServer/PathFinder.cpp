@@ -3,7 +3,7 @@
 
 #include "GameObject.h"
 #include "MapData.h"
-
+#include "PathReceiver.h"
 
 
 const vector<TilePos> PathFinder::UNIT_VECTOR{
@@ -17,57 +17,98 @@ const vector<TilePos> PathFinder::UNIT_VECTOR{
 		TilePos{  1,  1 }
 };
 
-
-const vector<PathFinder::Direction> PathFinder::DIRS{
-		DD, LD, LL, LU, UU, RU, RR, RD
-};
-
-void PathFinder::Execute(Position destination)
+pair<PathFinder::Direction, PathFinder::Direction> PathFinder::Split(Direction dir)
 {
-	_openNode.clear();
-	_openNodeMap.clear();
-	_closeNode.clear();
-	_destination = { (int)destination.x(), (int)destination.y()};
-	TilePos startPos = { (int)_object->position.x(), (int)_object->position.y() };
-
-	_maxWidth = min((int)_object->position.x() + 30, _mapData->Width());
-	_maxHeight = min((int)_object->position.y() + 30, _mapData->Height());
-	_minWidth = max((int)_object->position.x() - 30, 0);
-	_minHeight = max((int)_object->position.y() - 30, 0);
-
-	double manhattan = (_destination - startPos).lpNorm<1>();
-	TileNode* startNode = _tileNodeAllocator.Alloc();
-	startNode->parent = nullptr;
-	startNode->g = 0;
-	startNode->h = manhattan;
-	startNode->f = manhattan;
-	startNode->pos = startPos;
-	startNode->validDirFlag = 0xFF;
-	_openNode.push_back(startNode);
-	_openNodeMap.insert(make_pair(startPos, startNode));
-
-	while (!_openNode.empty())
+	if ((int)dir & 2 == 0)
 	{
-		TileNode* cur = _openNode.back();
-		_openNode.pop_back();
-		_openNodeMap.erase(cur->pos);
-		_closeNode.insert(make_pair(cur->pos, cur));
-		if (cur->pos == _destination)
-		{
-			list<TilePos> l;
-			TileNode* node = cur;
-			while (node->parent != nullptr)
-			{
-				l.push_front(node->pos);
-				node = node->parent;
-			}
-			return;
-		}
-
-		Update(cur);
-		ranges::sort(_openNode, _comp);
+		return make_pair(dir, dir);
 	}
 
+	return make_pair((Direction)(((int)dir + 7) % 8), (Direction)(((int)dir + 1) % 8));
+}
+
+bool PathFinder::IsObstacleBetween(const TilePos& start, const TilePos& end)
+{
+	TilePos diff = end - start;
+	int32 unitX = (diff.x() > 0) ? 1 : (diff.x() < 0) ? -1 : 0;
+	int32 unitY = (diff.y() > 0) ? 1 : (diff.y() < 0) ? -1 : 0;
+
+	TilePos unit = { unitX, unitY };
+
+
+	diff = diff.cwiseAbs();
+
+	TilePos pos = start;
+	int32 error = 0;
+
+	if (diff.x() > diff.y())
+	{
+		for (int32 i = 0; i < diff.x(); i++)
+		{
+			error += 2 * diff.y();
+			if (error > diff.x())
+			{
+				error -= 2 * diff.x();
+				pos.y() += unit.y();
+			}
+			pos.x() += unit.x();
+
+			if ((*_mapData)[pos] == TileInfo::OBSTACLE)
+			{
+				return true;
+			}
+		}
+	}
+	else
+	{
+		for (int32 i = 0; i < diff.y(); i++)
+		{
+			error += 2 * diff.x();
+			if (error > diff.y())
+			{
+				error -= 2 * diff.y();
+				pos.x() += unit.x();
+			}
+			pos.y() += unit.y();
+
+			if ((*_mapData)[pos] == TileInfo::OBSTACLE)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+Route PathFinder::Execute(const Position& start, const Position& destination)
+{
+	Route ret = Route::empty();
+
+	StartRoutine(start, destination);
+
+	if ((*_mapData)[_start] != TileInfo::OBSTACLE)
+	{
+		while (!_openNode.empty())
+		{
+			TileNode* cur = _openNode.back();
+			_openNode.pop_back();
+			_openNodeMap.erase(cur->pos);
+			_closeNode.insert(make_pair(cur->pos, cur));
+			if (cur->pos == _destination)
+			{
+				ret = CreateRoute(cur, destination);
+				break;
+			}
+
+			Update(cur);
+			ranges::sort(_openNode, _comp);
+		}
+	}
+
+	EndRoutine();
+
+	return ret;
 }
 
 bool PathFinder::IsInRange(const TilePos& pos)
@@ -88,7 +129,7 @@ void PathFinder::Update(TileNode* node)
 	{
 		if ((node->validDirFlag & curDirection) != 0)
 		{
-			Direction dir = DIRS[i];
+			Direction dir = (Direction)i;
 
 			uint8 dirFlag = 0;
 			TilePos pos;
@@ -158,8 +199,6 @@ uint8 PathFinder::SearchDiagonal(const TilePos& pos, Direction dir, TilePos* nod
 			}
 		}
 
-		
-
 		if (now == _destination)
 		{
 			*nodePoint = now;
@@ -183,14 +222,14 @@ uint8 PathFinder::SearchDiagonal(const TilePos& pos, Direction dir, TilePos* nod
 			return flag;
 		}
 
-		if (SearchOrthogonal(now + UNIT_VECTOR[(int)splitDir.first], splitDir.first, nodePoint) != NO_ROUTE)
+		if (SearchOrthogonal(now, splitDir.first, nodePoint) != NO_ROUTE)
 		{
 			flag << dir << splitDir.first << splitDir.second;
 			*nodePoint = now;
 			return flag;
 		}
 
-		if (SearchOrthogonal(now + UNIT_VECTOR[(int)splitDir.second], splitDir.second, nodePoint) != NO_ROUTE)
+		if (SearchOrthogonal(now, splitDir.second, nodePoint) != NO_ROUTE)
 		{
 			flag << dir << splitDir.first << splitDir.second;
 			*nodePoint = now;
@@ -260,8 +299,8 @@ void PathFinder::UpdateOpenList(const TilePos& pos, TileNode* parent, uint8 flag
 		return;
 	}
 
-	double g = parent->g + (parent->pos - pos).lpNorm<2>();
-	double h = (_destination - pos).lpNorm<1>();
+	float64 g = parent->g + (parent->pos - pos).lpNorm<2>();
+	float64 h = (_destination - pos).lpNorm<1>();
 
 	auto it = _openNodeMap.find(pos);
 	if (it != _openNodeMap.end())
@@ -287,5 +326,91 @@ void PathFinder::UpdateOpenList(const TilePos& pos, TileNode* parent, uint8 flag
 		_openNode.push_back(node);
 		_openNodeMap.insert(make_pair(node->pos, node));
 	}
+}
+
+void PathFinder::StartRoutine(const Position& start, const Position& destination)
+{
+	_destination = { (int)destination.x(), (int)destination.y() };
+	_start = { (int)(start.x() * (float32)_mapData->PrecisionWidth()), (int)(start.y() * (float32)_mapData->PrecisionHeight()) };
+
+	_maxWidth = min(_start.x() + 30 * _mapData->PrecisionWidth(), _mapData->Width());
+	_maxHeight = min(_start.y() + 30 * _mapData->PrecisionHeight(), _mapData->Height());
+	_minWidth = max((int32)(_start.x() - 30 * _mapData->PrecisionWidth()), 0);
+	_minHeight = max((int32)(_start.y() - 30 * _mapData->PrecisionHeight()), 0);
+
+	double manhattan = (_destination - _start).lpNorm<1>();
+	TileNode* startNode = _tileNodeAllocator.Alloc();
+	startNode->parent = nullptr;
+	startNode->g = 0;
+	startNode->h = manhattan;
+	startNode->f = manhattan;
+	startNode->pos = _start;
+	startNode->validDirFlag = 0xFF;
+	_openNode.push_back(startNode);
+	_openNodeMap.insert(make_pair(_start, startNode));
+}
+
+void PathFinder::EndRoutine()
+{
+	for (TileNode* node : _openNode)
+	{
+		_tileNodeAllocator.Free(node);
+	}
+	_openNode.clear();
+	_openNodeMap.clear();
+
+	for (auto& it : _closeNode)
+	{
+		_tileNodeAllocator.Free(it.second);
+	}
+	_closeNode.clear();
+}
+
+Route PathFinder::CreateRoute(TileNode* endNode, const Position& destination)
+{
+	TileNode* curNode = endNode;
+	TileNode* nextTarget = curNode;
+	TileNode* nextNode = curNode->parent;
+
+	Route ret;
+	ret.push_front(destination);
+
+	if (nextNode == nullptr)
+	{
+		return ret;
+	}
+
+	while (true)
+	{
+		if (IsObstacleBetween(curNode->pos, nextNode->pos))
+		{
+			curNode = nextTarget;
+			ret.push_front({
+				(float32)nextTarget->pos.x() / (_mapData->PrecisionWidth() ) + 0.5f, 
+				(float32)nextTarget->pos.y() / _mapData->PrecisionHeight() + 0.5f
+			});
+		}
+		else
+		{
+			nextTarget = nextNode;
+			nextNode = nextNode->parent;
+		}
+
+		if (nextTarget->pos == _start)
+		{
+			break;
+		}
+	}
+
+	return ret;
+}
+
+TilePos PathFinder::FindNearMovableTile(const TilePos& position)
+{
+	TilePos ret;
+
+	int32 orthoSize = 1;
+
+	return ret;
 }
 

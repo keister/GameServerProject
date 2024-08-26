@@ -27,10 +27,9 @@ bool HandlePacket_ChatServer(ChatServer* server, Player& player, Packet pkt)
 	case PacketType::C_CHAT_ENTER:
 	{
 		uint64 characterId;
-		int32 fieldId;
-		*pkt >> characterId >> fieldId;
+		*pkt >> characterId;
 
-		server->Handle_C_CHAT_ENTER(player,characterId, fieldId);
+		server->Handle_C_CHAT_ENTER(player,characterId);
 		break;
 	}
 	case PacketType::C_CHAT_LEAVE:
@@ -39,12 +38,12 @@ bool HandlePacket_ChatServer(ChatServer* server, Player& player, Packet pkt)
 		server->Handle_C_CHAT_LEAVE(player);
 		break;
 	}
-	case PacketType::C_MOVE_FIELD:
+	case PacketType::C_CHAT_MOVE_FIELD:
 	{
 		int32 fieldId;
 		*pkt >> fieldId;
 
-		server->Handle_C_MOVE_FIELD(player,fieldId);
+		server->Handle_C_CHAT_MOVE_FIELD(player,fieldId);
 		break;
 	}
 	case PacketType::C_CHAT:

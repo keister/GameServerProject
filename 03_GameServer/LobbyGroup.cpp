@@ -77,8 +77,13 @@ void LobbyGroup::Handle_C_CREATE_CHARACTER(Player& player, wstring& nickname, in
 void LobbyGroup::Handle_C_GAME_ENTER(Player& player, uint64 characterId, int32 idx)
 {
 	player.curIndex = idx;
-
+	player.spawnInfo = player.characterInfos[player.curIndex].pos;
 	MoveGroup(player.SessionId(), player.characterInfos[player.curIndex].fieldId);
+
+	SendPacket(player.SessionId(), Make_S_GAME_ENTER(
+		player.id,
+		player.characterInfos[player.curIndex].id
+	));
 }
 
 

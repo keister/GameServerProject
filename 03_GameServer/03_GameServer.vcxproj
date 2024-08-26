@@ -23,9 +23,14 @@
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="MapData.cpp" />
     <ClCompile Include="Monster.cpp" />
+    <ClCompile Include="MonsterData.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
     <ClCompile Include="PathFinder.cpp" />
+    <ClCompile Include="PathFindingTestObject.cpp" />
+    <ClCompile Include="PathFindingWorker.cpp" />
+    <ClCompile Include="PathReceiver.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Route.cpp" />
     <ClCompile Include="SqlSession.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -49,10 +54,15 @@
     <ClInclude Include="Map.h" />
     <ClInclude Include="MapData.h" />
     <ClInclude Include="Monster.h" />
+    <ClInclude Include="MonsterData.h" />
     <ClInclude Include="ObjectType.h" />
     <ClInclude Include="PacketHandler.h" />
     <ClInclude Include="PathFinder.h" />
+    <ClInclude Include="PathFindingTestObject.h" />
+    <ClInclude Include="PathFindingWorker.h" />
+    <ClInclude Include="PathReceiver.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="Route.h" />
     <ClInclude Include="SqlSession.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TimerEvent.h" />

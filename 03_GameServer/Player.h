@@ -4,6 +4,7 @@
 
 #include "Character.h"
 #include "GameHost.h"
+#include "GroupDefine.h"
 class Sector;
 class Character;
 
@@ -70,5 +71,7 @@ public:
 	vector<CharacterInfo> characterInfos;
 	int32 curIndex = -1;
 	Character*	curCharacter;
+
+	Position spawnInfo;
 };
 

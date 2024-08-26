@@ -169,7 +169,7 @@ void ChatServer::Handle_C_CHAT_LOGIN(Player& player, uint64 accountId, Token& to
 	));
 }
 
-void ChatServer::Handle_C_CHAT_ENTER(Player& player, uint64 characterId, int32 fieldId)
+void ChatServer::Handle_C_CHAT_ENTER(Player& player, uint64 characterId)
 {
 	uint64 sessionId = player.SessionId();
 
@@ -195,12 +195,7 @@ void ChatServer::Handle_C_CHAT_ENTER(Player& player, uint64 characterId, int32 f
 
 				mysqlx::Row row = result.fetchOne();
 
-				player.SetCharacter(characterId, row[0].get<wstring>(), fieldId);
-
-				{
-					WRITE_LOCK(_fieldLock[player.FieldId()]);
-					_playersOnField[player.FieldId()].insert(&player);
-				}
+				player.SetCharacter(characterId, row[0].get<wstring>());
 
 				{
 					WRITE_LOCK(_nicknameToPlayerLock);
@@ -224,8 +219,21 @@ void ChatServer::Handle_C_CHAT_LEAVE(Player& player)
 {
 }
 
-void ChatServer::Handle_C_MOVE_FIELD(Player& player, int32 fieldId)
+void ChatServer::Handle_C_CHAT_MOVE_FIELD(Player& player, int32 fieldId)
 {
+	{
+		if (player.FieldId() != -1)
+		{
+			WRITE_LOCK(_fieldLock[player.FieldId()]);
+			_playersOnField[player.FieldId()].erase(&player);
+		}
+	}
+
+	{
+		WRITE_LOCK(_fieldLock[fieldId]);
+		_playersOnField[fieldId].insert(&player);
+		player.SetField(fieldId);
+	}
 }
 
 void ChatServer::Handle_C_CHAT(Player& player, uint8 chatType, wstring& message)

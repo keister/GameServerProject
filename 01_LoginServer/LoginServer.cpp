@@ -115,7 +115,6 @@ void LoginServer::Handle_C_REQ_LOGIN(Player& player, int64 accountNo, Token& tok
 		else
 		{
 			id = queryResult.fetchOne()[0].get<uint64>();
-
 		}
 	}
 	catch (const mysqlx::Error& err)

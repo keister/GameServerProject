@@ -59,7 +59,6 @@
     - 채팅 입장
     [
         uint64  characterId
-        int32   fieldId
     ]
 
     @protocol S_CHAT_ENTER
@@ -74,7 +73,7 @@
 
     ]
 
-    @protocol C_MOVE_FIELD
+    @protocol C_CHAT_MOVE_FIELD
     - 필드이동
     [
         int32 fieldId
@@ -217,8 +216,7 @@
     - 다른 플레이어에게 위치 전파
     [
         uint64 playerId
-        float32 y
-        float32 x
+        PathReceiver path
     ]
 
     @protocol C_SKILL
@@ -244,6 +242,7 @@
     [
         uint64 id
         uint64 objectId
+        int32 maxHp
         int32 hp
         int32 speed
         float32 y
@@ -262,8 +261,7 @@
     [
         uint8 type
         uint64 id
-        float32 y
-        float32 x
+        PathReceiver path
     ]
     
     @protocol S_DAMAGE
@@ -278,6 +276,27 @@
     - 경험치 획득
     [
         int32 curExp
+    ]
+
+    @protocol C_MOVE_FIELD
+    - 필드이동
+    [
+        uint8 fieldId
+    ]
+
+    @protocol S_MOVE_FIELD
+    - 필드이동
+    [
+        uint8 fieldId
+    ]
+
+    @protocol S_MONSTER_ATTACK
+    - 몬스터 공격
+    [
+        uint64 id
+        float32 y
+        float32 x
+        float32 yaw
     ]
 
     @dto
@@ -338,6 +357,7 @@
     [
         C_MOVE,
         C_SKILL,
+        C_MOVE_FIELD,
     ]
 }
 
@@ -347,5 +367,14 @@
     @struct
     [
         Token,
+    ]
+}
+
+@dependency PathReceiver
+{
+    @include "PathReceiver.h"
+    @class
+    [
+        PathReceiver,
     ]
 }

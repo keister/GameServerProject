@@ -10,6 +10,7 @@
 
 #include "Common/PacketDefine.h"
 #include "Common/Token.h"
+#include "PathReceiver.h"
 RawPacket& operator<< (RawPacket& pkt, const Dto_S_GET_CHARACTER_LIST& value)
 {
 
@@ -109,6 +110,14 @@ bool HandlePacket_GameGroup_Town(GameGroup_Town* group, Player& player, Packet p
 		group->Handle_C_SKILL(player, objectId, skillId);
 		break;
 	}
+	case PacketType::C_MOVE_FIELD:
+	{
+		uint8 fieldId;
+		*pkt >> fieldId;
+
+		group->Handle_C_MOVE_FIELD(player, fieldId);
+		break;
+	}
 	default:
 		return false;
 	}
@@ -169,12 +178,12 @@ Packet Make_S_DESTROY_CHARACTER(const uint64 playerId)
 
 	return pkt;
 }
-Packet Make_S_MOVE(const uint64 playerId, const float32 y, const float32 x)
+Packet Make_S_MOVE(const uint64 playerId, const PathReceiver& path)
 {
 	Packet pkt = Packet::Alloc();
 
 	*pkt << PacketType::S_MOVE;
-	*pkt << playerId << y << x;
+	*pkt << playerId << path;
 
 	return pkt;
 }
@@ -187,12 +196,12 @@ Packet Make_S_SKILL(const uint64 playerId, const uint32 skillId, const float32 t
 
 	return pkt;
 }
-Packet Make_S_SPAWN_MONSTER(const uint64 id, const uint64 objectId, const int32 hp, const int32 speed, const float32 y, const float32 x)
+Packet Make_S_SPAWN_MONSTER(const uint64 id, const uint64 objectId, const int32 maxHp, const int32 hp, const int32 speed, const float32 y, const float32 x)
 {
 	Packet pkt = Packet::Alloc();
 
 	*pkt << PacketType::S_SPAWN_MONSTER;
-	*pkt << id << objectId << hp << speed << y << x;
+	*pkt << id << objectId << maxHp << hp << speed << y << x;
 
 	return pkt;
 }
@@ -205,12 +214,12 @@ Packet Make_S_DESTROY_OBJECT(const uint8 type, const uint64 id)
 
 	return pkt;
 }
-Packet Make_S_MOVE_OBJECT(const uint8 type, const uint64 id, const float32 y, const float32 x)
+Packet Make_S_MOVE_OBJECT(const uint8 type, const uint64 id, const PathReceiver& path)
 {
 	Packet pkt = Packet::Alloc();
 
 	*pkt << PacketType::S_MOVE_OBJECT;
-	*pkt << type << id << y << x;
+	*pkt << type << id << path;
 
 	return pkt;
 }
@@ -229,6 +238,24 @@ Packet Make_S_EXP(const int32 curExp)
 
 	*pkt << PacketType::S_EXP;
 	*pkt << curExp;
+
+	return pkt;
+}
+Packet Make_S_MOVE_FIELD(const uint8 fieldId)
+{
+	Packet pkt = Packet::Alloc();
+
+	*pkt << PacketType::S_MOVE_FIELD;
+	*pkt << fieldId;
+
+	return pkt;
+}
+Packet Make_S_MONSTER_ATTACK(const uint64 id, const float32 y, const float32 x, const float32 yaw)
+{
+	Packet pkt = Packet::Alloc();
+
+	*pkt << PacketType::S_MONSTER_ATTACK;
+	*pkt << id << y << x << yaw;
 
 	return pkt;
 }

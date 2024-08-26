@@ -9,6 +9,7 @@ class GameHost
 public:
 	uint64 SessionId() { return _sessionId; }
 	uint64 AttachObject(GameObject* object);
+	void   DetachObject();
 
 	GameObject* GetGameObject()
 	{

@@ -41,11 +41,15 @@ public:
 		_playerId = id;
 	}
 
-	void SetCharacter(uint64 id, const wstring& nickname, uint64 fieldId)
+	void SetCharacter(uint64 id, const wstring& nickname)
 	{
 		_characterId = id;
 		_nickname = nickname;
-		_fieldId = fieldId;
+	}
+
+	void SetField(int32 id)
+	{
+		_fieldId = id;
 	}
 
 public:

@@ -144,4 +144,7 @@ protected:
 	void OnUpdate() override;
 	void OnSpawnRequest(const list<GameHost*>& sessionList) override;
 	void OnDestroyRequest(const list<GameHost*>& sessionList) override;
+
+public:
+	void OnPathFindingCompletion() override;
 };

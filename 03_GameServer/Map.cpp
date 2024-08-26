@@ -6,7 +6,7 @@
 #include "GameObject.h"
 #include "MapData.h"
 
-Map::Map(GroupBase* group, const char* fileName, int32 sectorWidth, int32 sectorHeight)
+Map::Map(GameGroupBase* group, const char* fileName, int32 sectorWidth, int32 sectorHeight)
 	: _mapData(new MapData(fileName))
 	, _sectorWidth(sectorWidth)
 	, _sectorHeight(sectorHeight)
@@ -14,6 +14,7 @@ Map::Map(GroupBase* group, const char* fileName, int32 sectorWidth, int32 sector
 	, _sectorMaxX(_mapData->Width() / sectorWidth)
 	, _sectors(_sectorMaxY, vector<SectorInfo>(_sectorMaxX))
 	, _group(group)
+	, _pathFindingWorker(this)
 {
 	for (int32 y = 0; y < _sectorMaxY; y++)
 	{
@@ -30,11 +31,26 @@ Map::Map(GroupBase* group, const char* fileName, int32 sectorWidth, int32 sector
 			SetAroundSectors(y, x);
 		}
 	}
+}
 
+
+const TileInfo& Map::GetTileInfo(const Position& pos)
+{
+	return (*_mapData)[{(int32)pos.x(), (int32)pos.y()}];
+}
+
+Position Map::GetRandomPostionInSection(int32 id)
+{
+	auto& arr = _mapData->GetMovableTiles(id);
+
+	int32 idx = rand() % arr.size();
+
+	return arr[idx];
 }
 
 void Map::SetAroundSectors(int32 y, int32 x)
 {
+
 	SectorInfo& info = _sectors[y][x];
 	info.sector->pos = { y, x };
 

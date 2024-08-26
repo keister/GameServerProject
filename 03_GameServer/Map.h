@@ -2,6 +2,9 @@
 #include "GameHost.h"
 #include "Packet.h"
 #include "InheritanceReflection.h"
+#include "PathFindingWorker.h"
+enum class TileInfo : uint8;
+class GameGroupBase;
 class MapData;
 class GameObject;
 class GameHost;
@@ -94,7 +97,7 @@ private:
 class Map
 {
 public:
-
+	friend PathFindingWorker;
 
 	static constexpr int32 dy[] = { 1, 1, 0, -1, -1, -1, 0, 1 };
 	static constexpr int32 dx[] = { 0, -1, -1, -1, 0, 1, 1, 1 };
@@ -105,7 +108,7 @@ public:
 		vector<Sector*> aroundSectors{ 9, nullptr };
 	};
 
-	Map(GroupBase* group, const char* fileName, int32 sectorWidth, int32 sectorHeight);
+	Map(GameGroupBase* group, const char* fileName, int32 sectorWidth, int32 sectorHeight);
 
 	void SendPacket(Sector* sector, int32 sectorRange, Packet pkt, list<uint64>& except);
 	void SendPacket(Sector* sector, int32 sectorRange, Packet pkt, uint64 except);
@@ -178,13 +181,24 @@ public:
 
 	bool MoveSector(Player& player);
 
+	void RequestPathFinding(GameObject* gameObject, const Position& destination)
+	{
+		_pathFindingWorker.RequestPathFinding(gameObject, destination);
+	}
+
+	const TileInfo& GetTileInfo(const Position& pos);
+
 	int32 SectorWidth() const { return _sectorWidth; }
 	int32 SectorHeight() const { return _sectorHeight; }
 	int32 SectorMaxY() const { return _sectorMaxY; }
 	int32 SectorMaxX() const { return _sectorMaxX; }
 
+	Position GetRandomPostionInSection(int32 id);
+	uint64 GetTotalPathFindingCount() { return _pathFindingWorker.GetTotalPathFindingCount(); }
+
 private:
 	void SetAroundSectors(int32 y, int32 x);
+	void PathFindWorkerFunc();
 
 private:
 	MapData* _mapData;
@@ -193,6 +207,7 @@ private:
 	int32 _sectorMaxY;
 	int32 _sectorMaxX;
 	vector<vector<SectorInfo>> _sectors;
-	GroupBase* _group;
+	GameGroupBase* _group;
+	PathFindingWorker _pathFindingWorker;
 };
 

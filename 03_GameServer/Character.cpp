@@ -6,6 +6,7 @@
 
 #include "ObjectType.h"
 #include "PacketHandler.h"
+#include "PathReceiver.h"
 #include "Player.h"
 
 using namespace Eigen;
@@ -107,7 +108,16 @@ void Character::DecreaseHp(int32 amount)
 
 void Character::OnUpdate()
 {
-	MoveTowards(_target, _speed * DeltaTime());
+	if (GetPathReciever().CurrentTargetPosition() == GetPathReciever().GetRoute().end())
+	{
+		return;
+	}
+
+	MoveTowards(*GetPathReciever().CurrentTargetPosition(), _speed * DeltaTime());
+	if (position == *GetPathReciever().CurrentTargetPosition())
+	{
+		GetPathReciever().SetNextTargetPosition();
+	}
 }
 
 void Character::OnSpawnRequest(const list<GameHost*>& sessionList)
@@ -128,16 +138,18 @@ void Character::OnSpawnRequest(const list<GameHost*>& sessionList)
 		yaw
 	);
 
-	Packet movePacket = Make_S_MOVE(_playerId, _target.y(), _target.x());
+
+	Packet movePacket = Make_S_MOVE(_playerId, GetPathReciever());
 
 	for (GameHost* host : sessionList)
 	{
 		SendPacket(host->SessionId(), pkt);
-		if (_target != position)
+		if (!GetPathReciever().GetRoute().IsEmpty())
 		{
 			SendPacket(host->SessionId(), movePacket);
 		}
 	}
+
 }
 
 void Character::OnDestroyRequest(const list<GameHost*>& sessionList)
@@ -147,6 +159,13 @@ void Character::OnDestroyRequest(const list<GameHost*>& sessionList)
 	{
 		SendPacket(host->SessionId(), pkt);
 	}
+}
+
+void Character::OnPathFindingCompletion()
+{
+	Packet pkt = Make_S_MOVE(_playerId, GetPathReciever());
+
+	SendPacket(AROUND, pkt);
 }
 
 // void Character::OnSectorLeave(int32 sectorRange)

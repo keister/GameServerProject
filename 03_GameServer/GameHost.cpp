@@ -12,6 +12,15 @@ uint64 GameHost::AttachObject(GameObject* object)
 	return 0;
 }
 
+void GameHost::DetachObject()
+{
+	if (_attachObject == nullptr)
+		return;
+
+	_attachObject->_sector->hosts.erase(this);
+	_attachObject->_host = nullptr;
+}
+
 
 GameHost::~GameHost()
 {

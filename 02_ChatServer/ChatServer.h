@@ -52,9 +52,9 @@ protected:
 	//@@@AutoPackBegin
 	friend bool HandlePacket_ChatServer(ChatServer*, Player&, Packet);
 	void Handle_C_CHAT_LOGIN(Player& player, uint64 accountId, Token& token);
-	void Handle_C_CHAT_ENTER(Player& player, uint64 characterId, int32 fieldId);
+	void Handle_C_CHAT_ENTER(Player& player, uint64 characterId);
 	void Handle_C_CHAT_LEAVE(Player& player);
-	void Handle_C_MOVE_FIELD(Player& player, int32 fieldId);
+	void Handle_C_CHAT_MOVE_FIELD(Player& player, int32 fieldId);
 	void Handle_C_CHAT(Player& player, uint8 chatType, wstring& message);
 	void Handle_C_WHISPER(Player& player, wstring& toNickname, wstring& message);
 

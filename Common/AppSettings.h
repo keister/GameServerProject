@@ -23,8 +23,6 @@ class AppSettings
 	{
 		std::ifstream ifs("./appsettings.json");
 		_json = json::parse(ifs);
-
-		auto j = _json["123"];
 	}
 
 	inline static json _json;

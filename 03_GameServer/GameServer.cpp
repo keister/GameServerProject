@@ -60,6 +60,8 @@ GameServer::GameServer(const wstring& name)
 	_groups[(uint8)Groups::LOBBY]->SetServer(this);
 	_groups[(uint8)Groups::TOWN] = CreateGroup<GameGroup_Town>((uint8)Groups::TOWN, 20);
 	_groups[(uint8)Groups::TOWN]->SetServer(this);
+	_groups[(uint8)Groups::CEMETERY] = CreateGroup<GameGroup_Town>((uint8)Groups::CEMETERY, 20);
+	_groups[(uint8)Groups::CEMETERY]->SetServer(this);
 }
 
 void GameServer::RemoveHost(GameHost* ptr)

@@ -1,8 +1,10 @@
 #include "stdafx.h"
 #include "GameServer.h"
 #include "GameGroupBase.h"
-#include "Player.h"
 
+#include "PathReceiver.h"
+#include "Player.h"
+#include "Route.h"
 
 
 void GameGroupBase::SetServer(GameServer* server)
@@ -31,6 +33,25 @@ void GameGroupBase::ReleaseFixedObject(FixedObject* object)
 	{
 		delete object;
 	}
+}
+
+void GameGroupBase::PathFindingCompletionRoutine(GameObject* gameObject, uint64 objectId, uint64 execCount, Route& route)
+{
+	if (gameObject->ObjectId() != objectId)
+	{
+		return;
+	}
+
+	if (gameObject->_foundPath.ExecutionCount() != execCount)
+	{
+		return;
+	}
+
+	gameObject->GetPathReciever().GetRoute().Move(route);
+	gameObject->GetPathReciever().ResetCurrentTargetPosition();
+	gameObject->OnPathFindingCompletion();
+	
+
 }
 
 void GameGroupBase::ReleaseObject(GameObject* object)
@@ -125,14 +146,14 @@ void GameGroupBase::DestroyFixedObject(FixedObject* object)
 	_removefixedObjects.push_back(object);
 }
 
-void GameGroupBase::Invoke(function<void()>&& func, DWORD afterTick)
+void GameGroupBase::Invoke(BaseObject* object, function<void()>&& func, DWORD afterTick)
 {
-	_timerEventQueue.push(TimerEvent{ CurrentTick() + afterTick, func });
+	_timerEventQueue.push(TimerEvent{ CurrentTick() + afterTick, func, object, object->ObjectId() });
 }
 
-void GameGroupBase::Invoke(function<void()>&& func, float32 afterTime)
+void GameGroupBase::Invoke(BaseObject* object, function<void()>&& func, float32 afterTime)
 {
-	_timerEventQueue.push(TimerEvent{ CurrentTick() + (int32)(afterTime * 1000), func });
+	_timerEventQueue.push(TimerEvent{ CurrentTick() + (int32)(afterTime * 1000), func, object, object->ObjectId() });
 }
 
 Sector* GameGroupBase::FindSectorByPostion(float32 x, float32 y)
@@ -161,6 +182,7 @@ void GameGroupBase::OnEnter(uint64 sessionId)
 	if (playerObject == nullptr)
 		return;
 
+	// 
 	playerObject->ExecuteForEachObject<GameObject>(AROUND,
 		[&player, &my](GameObject* go)
 		{
@@ -230,8 +252,23 @@ void GameGroupBase::process_timer_event()
 {
 	while (_timerEventQueue.size() > 0)
 	{
+		const TimerEvent& event = _timerEventQueue.top();
+
 		if (_timerEventQueue.top().reservedTick < CurrentTick())
 		{
+			if (event.gameObject->_isDestroy)
+			{
+				_timerEventQueue.pop();
+				continue;
+			}
+
+			if (event.gameObject->ObjectId() != event.objectId)
+			{
+				_timerEventQueue.pop();
+				continue;
+			}
+
+
 			_timerEventQueue.top()();
 			_timerEventQueue.pop();
 		}
