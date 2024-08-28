@@ -1,66 +1,70 @@
 #pragma once
-class Player
+namespace chat
 {
-public:
-	uint64 SessionId() const
+	class Player
 	{
-		return _sessionId;
-	}
+	public:
+		uint64 SessionId() const
+		{
+			return _sessionId;
+		}
 
-	uint64 PlayerId() const
-	{
-		return _playerId;
-	}
+		uint64 PlayerId() const
+		{
+			return _playerId;
+		}
 
-	uint64 CharacterId() const
-	{
-		return _characterId;
-	}
+		uint64 CharacterId() const
+		{
+			return _characterId;
+		}
 
-	const wstring& Nickname() const
-	{
-		return _nickname;
-	}
+		const wstring& Nickname() const
+		{
+			return _nickname;
+		}
 
-	uint64 FieldId() const
-	{
-		return _fieldId;
-	}
+		uint64 FieldId() const
+		{
+			return _fieldId;
+		}
 
-public:
-	Player() = default;
+	public:
+		Player() = default;
 
-	void Init(uint64 sessionId)
-	{
-		_sessionId = sessionId;
-		_fieldId = -1;
-	}
+		void Init(uint64 sessionId)
+		{
+			_sessionId = sessionId;
+			_fieldId = -1;
+		}
 
-	void SetPlayerId(uint64 id)
-	{
-		_playerId = id;
-	}
+		void SetPlayerId(uint64 id)
+		{
+			_playerId = id;
+		}
 
-	void SetCharacter(uint64 id, const wstring& nickname)
-	{
-		_characterId = id;
-		_nickname = nickname;
-	}
+		void SetCharacter(uint64 id, const wstring& nickname)
+		{
+			_characterId = id;
+			_nickname = nickname;
+		}
 
-	void SetField(int32 id)
-	{
-		_fieldId = id;
-	}
+		void SetField(int32 id)
+		{
+			_fieldId = id;
+		}
 
-public:
-	Lock    lock;
+	public:
+		Lock    lock;
 
-private:
-	uint64	_sessionId;
-	uint64	_playerId;
-	uint64	_characterId;
-	wstring _nickname;
-	int32	_fieldId = -1;
+	private:
+		uint64	_sessionId;
+		uint64	_playerId;
+		uint64	_characterId;
+		wstring _nickname;
+		int32	_fieldId = -1;
 
-};
+	};
 
+	
+}

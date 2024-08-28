@@ -1,4 +1,6 @@
 Build/
 .vs/
 .vscode/
-Docs/
+Docs/html/
+Docs/latex/
+Obj/

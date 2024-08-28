@@ -8,49 +8,53 @@
 
 #include "Common/PacketDefine.h"
 #include "Common/Token.h"
-bool HandlePacket_LoginServer(LoginServer* server, Player& player, Packet pkt)
+
+namespace login
 {
-	PacketType type;
-	*pkt >> type;
-
-	switch (type)
+	bool HandlePacket_LoginServer(LoginServer* server, Player& player, Packet pkt)
 	{
-	case PacketType::C_REQ_LOGIN:
+		PacketType type;
+		*pkt >> type;
+
+		switch (type)
+		{
+		case PacketType::C_REQ_LOGIN:
+		{
+			int64 accountNo;
+			Token token;
+			*pkt >> accountNo >> token;
+
+			server->Handle_C_REQ_LOGIN(player, accountNo, token);
+			break;
+		}
+		case PacketType::C_GET_SERVER_LIST:
+		{
+
+			server->Handle_C_GET_SERVER_LIST(player);
+			break;
+		}
+		default:
+			return false;
+		}
+
+		return true;
+	}
+	Packet Make_S_RES_LOGIN(const int64 accountNo, const bool status, const Token& token)
 	{
-		int64 accountNo;
-		Token token;
-		*pkt >> accountNo >> token;
+		Packet pkt = Packet::Alloc();
 
-		server->Handle_C_REQ_LOGIN(player,accountNo, token);
-		break;
+		*pkt << PacketType::S_RES_LOGIN;
+		*pkt << accountNo << status << token;
+
+		return pkt;
 	}
-	case PacketType::C_GET_SERVER_LIST:
+	Packet Make_S_GET_SERVER_LIST(const vector<wstring>& gameServerIps, const vector<uint16>& gameServerPorts)
 	{
+		Packet pkt = Packet::Alloc();
 
-		server->Handle_C_GET_SERVER_LIST(player);
-		break;
+		*pkt << PacketType::S_GET_SERVER_LIST;
+		*pkt << gameServerIps << gameServerPorts;
+
+		return pkt;
 	}
-	default:
-		return false;
-	}
-
-	return true;
-}
-Packet Make_S_RES_LOGIN(const int64 accountNo, const bool status, const Token& token)
-{
-	Packet pkt = Packet::Alloc();
-
-	*pkt << PacketType::S_RES_LOGIN;
-	*pkt << accountNo << status << token;
-
-	return pkt;
-}
-Packet Make_S_GET_SERVER_LIST(const vector<wstring>& gameServerIps, const vector<uint16>& gameServerPorts)
-{
-	Packet pkt = Packet::Alloc();
-
-	*pkt << PacketType::S_GET_SERVER_LIST;
-	*pkt << gameServerIps << gameServerPorts;
-
-	return pkt;
 }

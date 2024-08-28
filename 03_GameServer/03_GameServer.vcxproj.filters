@@ -96,9 +96,15 @@
     <ClCompile Include="PathFindingWorker.cpp">
       <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="Route.cpp" />
-    <ClCompile Include="PathFindingTestObject.cpp" />
-    <ClCompile Include="MonsterData.cpp" />
+    <ClCompile Include="MonsterData.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="PathFindingTestObject.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Route.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -179,8 +185,14 @@
     <ClInclude Include="PathFindingWorker.h">
       <Filter>Util</Filter>
     </ClInclude>
-    <ClInclude Include="Route.h" />
-    <ClInclude Include="PathFindingTestObject.h" />
-    <ClInclude Include="MonsterData.h" />
+    <ClInclude Include="MonsterData.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="PathFindingTestObject.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Route.h">
+      <Filter>Util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

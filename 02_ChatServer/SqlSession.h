@@ -1,6 +1,9 @@
 #pragma once
 #include "mysqlx/xdevapi.h"
 
-using SqlSession = mysqlx::Session;
+namespace chat
+{
+	using SqlSession = mysqlx::Session;
 
-extern SqlSession& GetSqlSession();
+	extern SqlSession& GetSqlSession();
+}

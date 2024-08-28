@@ -7,6 +7,8 @@
 #include "Packet.h"
 CrashDump cd;
 
+using namespace chat;
+
 int main()
 {
 	ServerConfig::AddPath(L"../ServerConfig.ini");
@@ -44,7 +46,6 @@ int main()
 		uint64 acceptCount = server.GetAcceptCount();
 		uint64 sendCount = server.GetSendMessageCount();
 		uint64 recvCount = server.GetRecvMessageCount();
-
 
 		cout <<
 			std::format(

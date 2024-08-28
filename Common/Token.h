@@ -2,6 +2,7 @@
 
 #include "Packet.h"
 #include <random>
+
 enum
 {
 	TOKEN_SIZE = 256
@@ -13,7 +14,7 @@ struct Token
 
 	static void Generate(Token* token)
 	{
-		static minstd_rand randomGen{random_device{}()};
+		static minstd_rand randomGen{ random_device{}() };
 		static uniform_int_distribution distribution(0x21, 0x7E);
 		// 0x21 ~ 0x7E
 
@@ -63,3 +64,4 @@ inline RawPacket& operator<< (RawPacket& pkt, const Token& token)
 
 	return pkt;
 }
+

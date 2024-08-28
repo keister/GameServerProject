@@ -1,9 +1,12 @@
 #pragma once
-class Player
+namespace login
 {
-public:
-	uint64 sessionId;
-	DWORD lastRecvTime;
-	wstring ip;
-};
+	class Player
+	{
+	public:
+		uint64 sessionId;
+		DWORD lastRecvTime;
+		wstring ip;
+	};
+}
 

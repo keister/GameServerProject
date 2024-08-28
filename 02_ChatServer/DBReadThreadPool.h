@@ -1,42 +1,45 @@
 #pragma once
 #include "Job.h"
 class Job;
-
-class DBReadThreadPool
+namespace chat
 {
-
-public:
-	DBReadThreadPool(int32 numThread)
+	class DBReadThreadPool
 	{
 
-		for (int32 i = 0; i < numThread; i++)
+	public:
+		DBReadThreadPool(int32 numThread)
 		{
-			_dbReadThread.push_back(thread(&DBReadThreadPool::ThreadFunc, this));
+
+			for (int32 i = 0; i < numThread; i++)
+			{
+				_dbReadThread.push_back(thread(&DBReadThreadPool::ThreadFunc, this));
+			}
 		}
-	}
 
-	~DBReadThreadPool()
-	{
-		_isExit = true;
-
-		for (thread& t : _dbReadThread)
+		~DBReadThreadPool()
 		{
-			t.join();
+			_isExit = true;
+
+			for (thread& t : _dbReadThread)
+			{
+				t.join();
+			}
 		}
-	}
 
-	void ExecuteAsync(Job* job);
+		void ExecuteAsync(Job* job);
 
-private:
-	void ThreadFunc();
+	private:
+		void ThreadFunc();
 
 
-private:
-	vector<std::thread>		_dbReadThread;
-	std::condition_variable	_cv;
-	std::mutex				_jobQueueLock;
-	std::queue<Job*>		_jobQueue;
+	private:
+		vector<std::thread>		_dbReadThread;
+		std::condition_variable	_cv;
+		std::mutex				_jobQueueLock;
+		std::queue<Job*>		_jobQueue;
 
-	bool					_isExit;
-};
+		bool					_isExit;
+	};
 
+	
+}

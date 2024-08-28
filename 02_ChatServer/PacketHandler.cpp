@@ -8,110 +8,116 @@
 
 #include "Common/PacketDefine.h"
 #include "Common/Token.h"
-bool HandlePacket_ChatServer(ChatServer* server, Player& player, Packet pkt)
+
+
+namespace chat
 {
-	PacketType type;
-	*pkt >> type;
-
-	switch (type)
+	bool HandlePacket_ChatServer(ChatServer* server, Player& player, Packet pkt)
 	{
-	case PacketType::C_CHAT_LOGIN:
+		PacketType type;
+		*pkt >> type;
+
+		switch (type)
+		{
+		case PacketType::C_CHAT_LOGIN:
+		{
+			uint64 accountId;
+			Token token;
+			*pkt >> accountId >> token;
+
+			server->Handle_C_CHAT_LOGIN(player, accountId, token);
+			break;
+		}
+		case PacketType::C_CHAT_ENTER:
+		{
+			uint64 characterId;
+			*pkt >> characterId;
+
+			server->Handle_C_CHAT_ENTER(player, characterId);
+			break;
+		}
+		case PacketType::C_CHAT_LEAVE:
+		{
+
+			server->Handle_C_CHAT_LEAVE(player);
+			break;
+		}
+		case PacketType::C_CHAT_MOVE_FIELD:
+		{
+			int32 fieldId;
+			*pkt >> fieldId;
+
+			server->Handle_C_CHAT_MOVE_FIELD(player, fieldId);
+			break;
+		}
+		case PacketType::C_CHAT:
+		{
+			uint8 chatType;
+			wstring message;
+			*pkt >> chatType >> message;
+
+			server->Handle_C_CHAT(player, chatType, message);
+			break;
+		}
+		case PacketType::C_WHISPER:
+		{
+			wstring toNickname;
+			wstring message;
+			*pkt >> toNickname >> message;
+
+			server->Handle_C_WHISPER(player, toNickname, message);
+			break;
+		}
+		default:
+			return false;
+		}
+
+		return true;
+	}
+	Packet Make_S_CHAT_LOGIN(const bool status)
 	{
-		uint64 accountId;
-		Token token;
-		*pkt >> accountId >> token;
+		Packet pkt = Packet::Alloc();
 
-		server->Handle_C_CHAT_LOGIN(player,accountId, token);
-		break;
+		*pkt << PacketType::S_CHAT_LOGIN;
+		*pkt << status;
+
+		return pkt;
 	}
-	case PacketType::C_CHAT_ENTER:
+	Packet Make_S_CHAT_ENTER(const bool status)
 	{
-		uint64 characterId;
-		*pkt >> characterId;
+		Packet pkt = Packet::Alloc();
 
-		server->Handle_C_CHAT_ENTER(player,characterId);
-		break;
+		*pkt << PacketType::S_CHAT_ENTER;
+		*pkt << status;
+
+		return pkt;
 	}
-	case PacketType::C_CHAT_LEAVE:
+	Packet Make_S_CHAT(const uint8 chatType, const uint64 playerId, const uint64 characterId, const wstring& nickname, const wstring& message)
 	{
+		Packet pkt = Packet::Alloc();
 
-		server->Handle_C_CHAT_LEAVE(player);
-		break;
+		*pkt << PacketType::S_CHAT;
+		*pkt << chatType << playerId << characterId << nickname << message;
+
+		return pkt;
 	}
-	case PacketType::C_CHAT_MOVE_FIELD:
+	Packet Make_S_WHISPER(const uint64 playerId, const uint64 characterId, const wstring& nickname, const wstring& message)
 	{
-		int32 fieldId;
-		*pkt >> fieldId;
+		Packet pkt = Packet::Alloc();
 
-		server->Handle_C_CHAT_MOVE_FIELD(player,fieldId);
-		break;
+		*pkt << PacketType::S_WHISPER;
+		*pkt << playerId << characterId << nickname << message;
+
+		return pkt;
 	}
-	case PacketType::C_CHAT:
+	Packet Make_S_CHAT_FAIL(const int32 code)
 	{
-		uint8 chatType;
-		wstring message;
-		*pkt >> chatType >> message;
+		Packet pkt = Packet::Alloc();
 
-		server->Handle_C_CHAT(player,chatType, message);
-		break;
-	}
-	case PacketType::C_WHISPER:
-	{
-		wstring toNickname;
-		wstring message;
-		*pkt >> toNickname >> message;
+		*pkt << PacketType::S_CHAT_FAIL;
+		*pkt << code;
 
-		server->Handle_C_WHISPER(player,toNickname, message);
-		break;
-	}
-	default:
-		return false;
+		return pkt;
 	}
 
-	return true;
-}
-Packet Make_S_CHAT_LOGIN(const bool status)
-{
-	Packet pkt = Packet::Alloc();
-
-	*pkt << PacketType::S_CHAT_LOGIN;
-	*pkt << status;
-
-	return pkt;
-}
-Packet Make_S_CHAT_ENTER(const bool status)
-{
-	Packet pkt = Packet::Alloc();
-
-	*pkt << PacketType::S_CHAT_ENTER;
-	*pkt << status;
-
-	return pkt;
-}
-Packet Make_S_CHAT(const uint8 chatType, const uint64 playerId, const uint64 characterId, const wstring& nickname, const wstring& message)
-{
-	Packet pkt = Packet::Alloc();
-
-	*pkt << PacketType::S_CHAT;
-	*pkt << chatType << playerId << characterId << nickname << message;
-
-	return pkt;
-}
-Packet Make_S_WHISPER(const uint64 playerId, const uint64 characterId, const wstring& nickname, const wstring& message)
-{
-	Packet pkt = Packet::Alloc();
-
-	*pkt << PacketType::S_WHISPER;
-	*pkt << playerId << characterId << nickname << message;
-
-	return pkt;
-}
-Packet Make_S_CHAT_FAIL(const int32 code)
-{
-	Packet pkt = Packet::Alloc();
-
-	*pkt << PacketType::S_CHAT_FAIL;
-	*pkt << code;
-
-	return pkt;
 }

@@ -7,19 +7,7 @@
 #include "Packet.h"
 CrashDump cd;
 
-class A;
-
-template <typename T>
-class B
-{
-	A<T>* a;
-};
-
-template <typename T>
-class A
-{
-	T a;
-};
+using namespace login;
 
 int main()
 {
