@@ -1,19 +1,19 @@
 #include "stdafx.h"
 
-#include <ServerConfig.h>
 
 #include "CrashDump.h"
 #include "GameServer.h"
 #include "Packet.h"
+#include "common/AppSettings.h"
 CrashDump cd;
+using namespace game;
 
 int main()
 {
-	ServerConfig::AddPath(L"../ServerConfig.ini");
 
 	SET_LOG_LEVEL(LogLevel::DBG);
 
-	GameServer server(L"GameServer");
+	GameServer server(AppSettings::GetSection("GameServer"));
 	uint64 prevAcceptCount = 0;
 	uint64 prevSendCount = 0;
 	uint64 prevRecvCount = 0;
@@ -41,9 +41,9 @@ int main()
 		uint64 acceptCount = server.GetAcceptCount();
 		uint64 sendCount = server.GetSendMessageCount();
 		uint64 recvCount = server.GetRecvMessageCount();
-		uint64 frameCa = server.GetFrameCount(Groups::TOWN);
+		uint64 frameCa = server.GetFrameCount(Groups::CANYON);
 		uint64 frameCe = server.GetFrameCount(Groups::CEMETERY);
-		uint64 pfCountCa = server.GetGroup(Groups::TOWN)->GetMap()->GetTotalPathFindingCount();
+		uint64 pfCountCa = server.GetGroup(Groups::CANYON)->GetMap()->GetTotalPathFindingCount();
 		uint64 pfCountCe = server.GetGroup(Groups::CEMETERY)->GetMap()->GetTotalPathFindingCount();
 		cout <<
 			std::format(
@@ -81,8 +81,8 @@ int main()
 				, server.GetPlayerCount(Groups::LOBBY)
 				, frameCa - prevFrameca
 				, frameCe - prevFrameCe
-				, server.GetPlayerCount(Groups::TOWN), server.GetPlayerCount(Groups::CEMETERY)
-				, server.GetGroup(Groups::TOWN)->GetObjectCount(), server.GetGroup(Groups::CEMETERY)->GetObjectCount()
+				, server.GetPlayerCount(Groups::CANYON), server.GetPlayerCount(Groups::CEMETERY)
+				, server.GetGroup(Groups::CANYON)->GetObjectCount(), server.GetGroup(Groups::CEMETERY)->GetObjectCount()
 				, pfCountCa - prevPfca
 				, pfCountCe - prevPfCe
 			);

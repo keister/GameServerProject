@@ -16,7 +16,6 @@ namespace chat
 
 		if (session == nullptr)
 		{
-			//session = new SqlSession("localhost", 11771, "root", "as1234", "game");
 			session = new SqlSession(AppSettings::GetSection("MySql")["uri"].get<string>());
 			TlsSetValue(sqlSessionTlsIndex, session);
 		}

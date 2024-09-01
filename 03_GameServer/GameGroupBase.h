@@ -5,100 +5,107 @@
 
 
 #include "TimerEvent.h"
-class Route;
-struct RouteNode;
-class MapData;
-class FixedObject;
-class Sector;
-struct TimerEvent;
-class GameServer;
-class Player;
-class GameObject;
-class FixedObject;
-class Map;
 
-class GameGroupBase : public GroupBase
+namespace game
 {
-public:
-	GameGroupBase() {};
+	class Route;
+	struct RouteNode;
+	class MapData;
+	class FixedObject;
+	class Sector;
+	struct TimerEvent;
+	class GameServer;
+	class Player;
+	class GameObject;
+	class FixedObject;
+	class Map;
 
-	void SetServer(GameServer* server);
-	uint64 GetPlayerCount() { return _players.size(); }
+	class GameGroupBase : public netlib::GroupBase
+	{
+	public:
+		GameGroupBase() : _server(nullptr), _map(nullptr) {};
 
-	uint64 GetObjectCount() { return _gameObjects.size(); }
+		void SetServer(GameServer* server);
+		uint64 GetPlayerCount() { return _players.size(); }
 
-	bool CreateMap(const char* fileName, int32 sectorWidth, int32 sectorHeight);
+		uint64 GetObjectCount() { return _gameObjects.size(); }
 
-	template <typename T, typename ...Args>
-	T* CreateObject(const Eigen::Vector2<float32>& pos, Args&&... args);
+		bool CreateMap(const char* fileName, int32 sectorWidth, int32 sectorHeight);
 
-	template <typename T, typename ...Args>
-	T* CreateFixedObject(Args&&... args);
+		template <typename T, typename ...Args>
+		T* CreateObject(const Eigen::Vector2<float32>& pos, Args&&... args);
 
-	void DestroyObject(GameObject* object);
+		template <typename T, typename ...Args>
+		T* CreateFixedObject(Args&&... args);
 
-	void DestroyFixedObject(FixedObject* object);
+		void DestroyObject(GameObject* object);
 
-	void Invoke(BaseObject* object, function<void()>&& func, DWORD afterTick);
-	void Invoke(BaseObject* object, function<void()>&& func, float32 afterTime);
+		void DestroyFixedObject(FixedObject* object);
 
-	Sector* FindSectorByPostion(float32 x, float32 y);
+		void Invoke(BaseObject* object, function<void()>&& func, DWORD afterTick);
+		void Invoke(BaseObject* object, function<void()>&& func, float32 afterTime);
 
-	void SendPacket(uint64 sessionId, Packet pkt);
-	void SendPacket(Sector* sector, int32 sectorRange, Packet pkt);
-	void SendPacket(Sector* sector, int32 sectorRange, Packet pkt, uint64 except);
-	void SendPacket(Sector* sector, int32 sectorRange, Packet pkt, list<uint64>& exceptSession);
+		Sector* FindSectorByPostion(float32 x, float32 y);
 
-	template <typename T>
-	bool ExecuteForEachHost(Sector* sector, int32 sectorRange, std::function<void(T*)>&& func);
+		void SendPacket(uint64 sessionId, Packet pkt);
+		void SendPacket(Sector* sector, int32 sectorRange, Packet pkt);
+		void SendPacket(Sector* sector, int32 sectorRange, Packet pkt, uint64 except);
+		void SendPacket(Sector* sector, int32 sectorRange, Packet pkt, list<uint64>& exceptSession);
 
-	template <typename T>
-	bool ExecuteForEachObject(Sector* sector, int32 sectorRange, std::function<void(T*)>&& func);
-	void PathFindingCompletionRoutine(GameObject* gameObject, uint64 objectId, uint64 execCount, Route& route);
-	Map* GetMap() { return _map; }
+		template <typename T>
+		bool ExecuteForEachHost(Sector* sector, int32 sectorRange, std::function<void(T*)>&& func);
 
-protected:
-	void ReleaseObject(GameObject* object);
-	void ReleaseFixedObject(FixedObject* object);
-	Player* find_player(uint64 sessionId);
-	void insert_player(Player* player);
-	void delete_player(uint64 sessionId);
-	virtual void OnPlayerEnter(Player& player) {};
-	virtual void OnPlayerLeave(Player& player) {};
+		template <typename T>
+		bool ExecuteForEachObject(Sector* sector, int32 sectorRange, std::function<void(T*)>&& func);
+		void PathFindingCompletionRoutine(GameObject* gameObject, uint64 objectId, uint64 execCount, Route& route);
+		Map* GetMap() const { return _map; }
+
+	protected:
+		void ReleaseObject(GameObject* object);
+		void ReleaseFixedObject(FixedObject* object);
+		virtual void OnPlayerEnter(Player& player) {};
+		virtual void OnPlayerLeave(Player& player) {};
+
+	public:
+		~GameGroupBase() override {};
+
+	protected:
+		void OnEnter(uint64 sessionId) final;
+		void OnLeave(uint64 sessionId) final;
+		Player* FindPlayer(uint64 sessionId);
+		void	InsertPlayer(Player* player);
+		void	DeletePlayer(uint64 sessionId);
+		void UpdateFrame() final;
+		GameServer* _server;
+	private:
+		void	process_timer_event();
 
 
+	private:
+		using TimerEventQueue		= priority_queue<TimerEvent>;
+		using GameObjectSetType		= unordered_set<GameObject*>;
+		using FixedObjectSetType	= unordered_set<FixedObject*>;
+		using PlayerMapType			= unordered_map<uint64, Player*>;
 
+		priority_queue<TimerEvent>	_timerEventQueue;
+		list<GameObject*>			_removeObjects;
+		list<FixedObject*>			_removefixedObjects;
 
-public:
-	~GameGroupBase() override {};
+		GameObjectSetType			_gameObjects;
+		FixedObjectSetType			_fixedObjects;
+		PlayerMapType				_players;
+		Map*						_map;
 
-protected:
-	void OnEnter(uint64 sessionId) final;
-	void OnLeave(uint64 sessionId) final;
-	void UpdateFrame() final;
-	GameServer* _server;
-private:
-	void process_timer_event();
-
-	priority_queue<TimerEvent> _timerEventQueue;
-	list<GameObject*>	_removeObjects;
-	list<FixedObject*>	_removefixedObjects;
-	
-	unordered_set<GameObject*> _gameObjects;
-	unordered_set<FixedObject*> _fixedObjects;
-	unordered_map<uint64, Player*> _players;
-	Map* _map;
-
-	inline static uint64 _objectIdGenerator = 0;
-};
-
+		inline static uint64 _objectIdGenerator = 0;
+	};
+}
 
 #include "GameObject.h"
 #include "Map.h"
 
 
 template<typename T>
-inline bool GameGroupBase::ExecuteForEachHost(Sector* sector, int32 sectorRange, std::function<void(T*)>&& func)
+inline bool game::GameGroupBase::ExecuteForEachHost(Sector* sector, int32 sectorRange, std::function<void(T*)>&& func)
 {
 	if (_map == nullptr)
 	{
@@ -111,7 +118,7 @@ inline bool GameGroupBase::ExecuteForEachHost(Sector* sector, int32 sectorRange,
 }
 
 template <typename T>
-bool GameGroupBase::ExecuteForEachObject(Sector* sector, int32 sectorRange, std::function<void(T*)>&& func)
+bool game::GameGroupBase::ExecuteForEachObject(Sector* sector, int32 sectorRange, std::function<void(T*)>&& func)
 {
 	if (_map == nullptr)
 	{
@@ -125,7 +132,7 @@ bool GameGroupBase::ExecuteForEachObject(Sector* sector, int32 sectorRange, std:
 
 
 template <typename T, typename ... Args>
-T* GameGroupBase::CreateObject(const Eigen::Vector2<float32>& pos, Args&&... args)
+T* game::GameGroupBase::CreateObject(const Eigen::Vector2<float32>& pos, Args&&... args)
 {
 	uint64 id = InterlockedIncrement64((LONGLONG*)&_objectIdGenerator);
 
@@ -164,7 +171,7 @@ T* GameGroupBase::CreateObject(const Eigen::Vector2<float32>& pos, Args&&... arg
 }
 
 template <typename T, typename ... Args>
-T* GameGroupBase::CreateFixedObject(Args&&... args)
+T* game::GameGroupBase::CreateFixedObject(Args&&... args)
 {
 	uint64 id = InterlockedIncrement64((LONGLONG*)&_objectIdGenerator);
 

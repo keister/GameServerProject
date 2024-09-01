@@ -1,17 +1,17 @@
 #include "stdafx.h"
 #include "Route.h"
 
-Route::Route()
+game::Route::Route()
 {
 	_head = empty()._head;
 	_tail = empty()._tail;
 }
 
-Route::~Route()
+game::Route::~Route()
 {
 }
 
-void Route::push_back(const Position& pos)
+void game::Route::push_back(const Position& pos)
 {
 	if (IsEmpty())
 	{
@@ -27,7 +27,7 @@ void Route::push_back(const Position& pos)
 
 }
 
-void Route::push_front(const Position& pos)
+void game::Route::push_front(const Position& pos)
 {
 	if (IsEmpty())
 	{
@@ -43,7 +43,7 @@ void Route::push_front(const Position& pos)
 
 }
 
-void Route::Destroy()
+void game::Route::Destroy()
 {
 	if (IsEmpty())
 	{
@@ -63,7 +63,7 @@ void Route::Destroy()
 	_tail = empty()._tail;
 }
 
-void Route::Move(Route& route)
+void game::Route::Move(Route& route)
 {
 	if (!IsEmpty())
 	{
@@ -76,7 +76,7 @@ void Route::Move(Route& route)
 	route._tail = empty()._tail;
 }
 
-void Route::CreateList()
+void game::Route::CreateList()
 {
 	_head = AllocRouteNode();
 	_tail = AllocRouteNode();

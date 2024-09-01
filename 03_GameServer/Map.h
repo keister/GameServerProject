@@ -3,63 +3,81 @@
 #include "Packet.h"
 #include "InheritanceReflection.h"
 #include "PathFindingWorker.h"
-enum class TileInfo : uint8;
-class GameGroupBase;
-class MapData;
-class GameObject;
-class GameHost;
-class Monster;
-class Sector;
-class GroupBase;
-class Player;
 
-using SectorList = list<Sector*>;
 
-enum SectorRange
+namespace game
 {
-	UP = 0x01,
-	LEFT_UP = 0x02,
-	LEFT = 0x04,
-	LEFT_DOWN = 0x08,
-	DOWN = 0x10,
-	RIGHT_DOWN = 0x20,
-	RIGHT = 0x40,
-	RIGHT_UP = 0x80,
-	CENTER = 0x100,
+	enum class TileInfo : uint8;
+	class GameGroupBase;
+	class MapData;
+	class GameObject;
+	class GameHost;
+	class Monster;
+	class Sector;
+	class GroupBase;
+	class Player;
 
-	COL_CENTER = UP | CENTER | DOWN,
-	COL_RIGHT = RIGHT_UP | RIGHT | RIGHT_DOWN,
-	COL_LEFT = LEFT_UP | LEFT | LEFT_DOWN,
+	using SectorList = list<Sector*>;
 
-	ROW_UP = LEFT_UP | UP | RIGHT_UP,
-	ROW_CENTER = LEFT | CENTER | RIGHT,
-	ROW_DOWN = LEFT_DOWN | DOWN | RIGHT_DOWN,
+	enum SectorRange
+	{
+		UP = 0x01,
+		LEFT_UP = 0x02,
+		LEFT = 0x04,
+		LEFT_DOWN = 0x08,
+		DOWN = 0x10,
+		RIGHT_DOWN = 0x20,
+		RIGHT = 0x40,
+		RIGHT_UP = 0x80,
+		CENTER = 0x100,
 
-	COL_LEFT_CENTER = COL_LEFT | COL_CENTER,
-	COL_RIGHT_CENTER = COL_RIGHT | COL_CENTER,
+		COL_CENTER = UP | CENTER | DOWN,
+		COL_RIGHT = RIGHT_UP | RIGHT | RIGHT_DOWN,
+		COL_LEFT = LEFT_UP | LEFT | LEFT_DOWN,
 
-	ROW_UP_CENTER = ROW_UP | ROW_CENTER,
-	ROW_DOWN_CENTER = ROW_DOWN | ROW_CENTER,
+		ROW_UP = LEFT_UP | UP | RIGHT_UP,
+		ROW_CENTER = LEFT | CENTER | RIGHT,
+		ROW_DOWN = LEFT_DOWN | DOWN | RIGHT_DOWN,
 
-	ARROW_LEFT_UP = COL_LEFT | ROW_UP,
-	ARROW_RIGHT_UP = COL_RIGHT | ROW_UP,
-	ARROW_LEFT_DOWN = COL_LEFT | ROW_DOWN,
-	ARROW_RIGHT_DOWN = COL_RIGHT | ROW_DOWN,
+		COL_LEFT_CENTER = COL_LEFT | COL_CENTER,
+		COL_RIGHT_CENTER = COL_RIGHT | COL_CENTER,
 
-	AROUND = 0x1FF,
-};
+		ROW_UP_CENTER = ROW_UP | ROW_CENTER,
+		ROW_DOWN_CENTER = ROW_DOWN | ROW_CENTER,
 
-class Sector
-{
-	using ObjSet = unordered_set<void*>;
-public:
-	Point pos;
-	unordered_set<GameHost*> hosts;
-	unordered_set<GameObject*> objects;
-	
+		ARROW_LEFT_UP = COL_LEFT | ROW_UP,
+		ARROW_RIGHT_UP = COL_RIGHT | ROW_UP,
+		ARROW_LEFT_DOWN = COL_LEFT | ROW_DOWN,
+		ARROW_RIGHT_DOWN = COL_RIGHT | ROW_DOWN,
 
-	template <typename T>
-	void ExecuteForEachHost(std::function<void(T*)>&& func)
+		AROUND = 0x1FF,
+	};
+
+	class Sector
+	{
+	public:
+		Point pos;
+		unordered_set<GameHost*> hosts;
+
+		template <typename T> requires is_base_of_v<GameHost, T>
+		void ExecuteForEachHost(std::function<void(T*)>&& func);
+		template <typename T> requires is_base_of_v<GameObject, T>
+		void ExecuteForEachObject(std::function<void(T*)>&& func);
+
+		void InsertObject(GameObject* obj);
+		void EraseObject(GameObject* obj);
+
+	private:
+		using ClassifiedObjectByType = unordered_map<uint64, unordered_set<void*>>;
+
+		ClassifiedObjectByType _classifiedObjects;
+	};
+
+	/// @brief 현재 섹터의 Host들에게 함수호출
+	/// @tparam T	GameHost를 상속받은 타입
+	/// @param func 호출할 함수
+	template <typename T> requires is_base_of_v<GameHost, T>
+	void Sector::ExecuteForEachHost(std::function<void(T*)>&& func)
 	{
 		for (GameHost* host : hosts)
 		{
@@ -67,8 +85,11 @@ public:
 		}
 	}
 
-	template <typename T>
-	void ExecuteForEachObject(std::function<void(T*)>&& func)
+	/// @brief 현재 섹터의 특정 Type만 지정하여 함수 호출
+	/// @tparam T 함수를 실행할 GameObject를 상속받은 타입
+	/// @param func 호출할 함수
+	template <typename T> requires is_base_of_v<GameObject, T>
+	void Sector::ExecuteForEachObject(std::function<void(T*)>&& func)
 	{
 		TypeInfo* info = T::StaticInfo();
 
@@ -83,64 +104,81 @@ public:
 		{
 			func((T*)objs);
 		}
-
 	}
 
-	void InsertObject(GameObject* obj);
-	void EraseObject(GameObject* obj);
 
-private:
-	unordered_map<uint64, unordered_set<void*>> _classifiedObjects;
-};
-
-
-class Map
-{
-public:
-	friend PathFindingWorker;
-
-	static constexpr int32 dy[] = { 1, 1, 0, -1, -1, -1, 0, 1 };
-	static constexpr int32 dx[] = { 0, -1, -1, -1, 0, 1, 1, 1 };
-
-	struct SectorInfo
+	class Map
 	{
-		Sector* sector;
-		vector<Sector*> aroundSectors{ 9, nullptr };
+	public:
+		friend PathFindingWorker;
+
+		static constexpr int32 dy[] = { 1, 1, 0, -1, -1, -1, 0, 1 };
+		static constexpr int32 dx[] = { 0, -1, -1, -1, 0, 1, 1, 1 };
+
+		struct SectorInfo
+		{
+			Sector* sector;
+			vector<Sector*> aroundSectors{ 9, nullptr };
+		};
+
+		Map(GameGroupBase* group, const char* fileName, int32 sectorWidth, int32 sectorHeight);
+
+		void SendPacket(Sector* sector, int32 sectorRange, Packet pkt, list<uint64>& except);
+		void SendPacket(Sector* sector, int32 sectorRange, Packet pkt, uint64 except);
+		void SendPacket(Sector* sector, int32 sectorRange, Packet pkt);
+
+		MapData* GetData() const { return _mapData; }
+		Sector*	GetSector(int32 y, int32 x) const { return _sectors[y][x].sector; }
+		void	GetSectors(SectorList& list, int32 y, int32 x, int32 sectorRange);
+
+		Sector* FindSectorByPosition(int32 y, int32 x);
+		const vector<Sector*>& GetAroundSectors(Sector* sector);
+
+		template <typename T> requires is_base_of_v<GameHost, T>
+		void ExecuteForEachHost(Sector* sector, int32 sectorRange, std::function<void(T*)>&& func);
+
+		template <typename T> requires is_base_of_v<GameObject, T>
+		void ExecuteForEachObject(Sector* sector, int32 sectorRange, std::function<void(T*)>&& func);
+
+		void RequestPathFinding(GameObject* gameObject, const Position& destination)
+		{
+			_pathFindingWorker.RequestPathFinding(gameObject, destination);
+		}
+
+		const TileInfo& GetTileInfo(const Position& pos);
+
+		int32		SectorWidth() const { return _sectorWidth; }
+		int32		SectorHeight() const { return _sectorHeight; }
+		int32		SectorMaxY() const { return _sectorMaxY; }
+		int32		SectorMaxX() const { return _sectorMaxX; }
+
+		Position	GetRandomPostionInSection(int32 id);
+		uint64		GetTotalPathFindingCount() { return _pathFindingWorker.GetTotalPathFindingCount(); }
+
+	private:
+		void		set_around_sectors(int32 y, int32 x);
+
+	private:
+		using SectorArray2D = vector<vector<SectorInfo>>;
+
+		MapData*			_mapData;			///< 장애물, 몬스터 정보 등
+		int32				_sectorWidth;
+		int32				_sectorHeight;
+		int32				_sectorMaxY;
+		int32				_sectorMaxX;
+		SectorArray2D		_sectors;			///< 맵에 속한 섹터들
+		GameGroupBase*		_group;				///< 속한 그룹
+		PathFindingWorker	_pathFindingWorker;	///< 길찾기 스레드
 	};
 
-	Map(GameGroupBase* group, const char* fileName, int32 sectorWidth, int32 sectorHeight);
-
-	void SendPacket(Sector* sector, int32 sectorRange, Packet pkt, list<uint64>& except);
-	void SendPacket(Sector* sector, int32 sectorRange, Packet pkt, uint64 except);
-	void SendPacket(Sector* sector, int32 sectorRange, Packet pkt);
-
-	MapData* GetData()
-	{
-		return _mapData;
-	}
-
-	Sector* GetSector(int32 y, int32 x)
-	{
-		return _sectors[y][x].sector;
-	}
-
-	void GetSectors(SectorList& list, int32 y, int32 x, int32 sectorRange);
-
-	Sector* FindSectorByPosition(int32 y, int32 x)
-	{
-		int32 sectorY = y / _sectorHeight;
-		int32 sectorX = x / _sectorWidth;
-
-		return _sectors[sectorY][sectorX].sector;
-	}
-
-	const vector<Sector*> GetAroundSectors(Sector* sector)
-	{
-		return _sectors[sector->pos.y][sector->pos.x].aroundSectors;
-	}
-
-	template<typename T>
-	void ExecuteForEachHost(Sector* sector, int32 sectorRange, std::function<void(T*)>&& func)
+	/// @brief 한 섹터로부터 인접한 섹터들에 있는 Host들에게 특정함수 호출\n
+	///			비트연산을 통해 섹터 범위를 계산한다.
+	/// @tparam T	GameHost를 상속받은 타입
+	/// @param sector 기준 섹터
+	/// @param sectorRange 섹터 범위
+	/// @param func 호출할 함수
+	template <typename T> requires is_base_of_v<GameHost, T>
+	void Map::ExecuteForEachHost(Sector* sector, int32 sectorRange, std::function<void(T*)>&& func)
 	{
 		vector<Sector*> around = _sectors[sector->pos.y][sector->pos.x].aroundSectors;
 		int32 currentSector = 1;
@@ -159,8 +197,14 @@ public:
 		}
 	}
 
-	template<typename T>
-	void ExecuteForEachObject(Sector* sector, int32 sectorRange, std::function<void(T*)>&& func)
+	/// @brief 한 섹터로부터 인접한 섹터들에 있는 특정 타입의 GameObject들에게 특정함수 호출\n
+	///			비트연산을 통해 섹터 범위를 계산한다.
+	/// @tparam T	GameObject를 상속받은 타입
+	/// @param sector 기준 섹터
+	/// @param sectorRange 섹터 범위
+	/// @param func 호출할 함수
+	template <typename T> requires is_base_of_v<GameObject, T>
+	void Map::ExecuteForEachObject(Sector* sector, int32 sectorRange, std::function<void(T*)>&& func)
 	{
 		vector<Sector*> around = _sectors[sector->pos.y][sector->pos.x].aroundSectors;
 		int32 currentSector = 1;
@@ -178,36 +222,4 @@ public:
 			}
 		}
 	}
-
-	bool MoveSector(Player& player);
-
-	void RequestPathFinding(GameObject* gameObject, const Position& destination)
-	{
-		_pathFindingWorker.RequestPathFinding(gameObject, destination);
-	}
-
-	const TileInfo& GetTileInfo(const Position& pos);
-
-	int32 SectorWidth() const { return _sectorWidth; }
-	int32 SectorHeight() const { return _sectorHeight; }
-	int32 SectorMaxY() const { return _sectorMaxY; }
-	int32 SectorMaxX() const { return _sectorMaxX; }
-
-	Position GetRandomPostionInSection(int32 id);
-	uint64 GetTotalPathFindingCount() { return _pathFindingWorker.GetTotalPathFindingCount(); }
-
-private:
-	void SetAroundSectors(int32 y, int32 x);
-	void PathFindWorkerFunc();
-
-private:
-	MapData* _mapData;
-	int32 _sectorWidth;
-	int32 _sectorHeight;
-	int32 _sectorMaxY;
-	int32 _sectorMaxX;
-	vector<vector<SectorInfo>> _sectors;
-	GameGroupBase* _group;
-	PathFindingWorker _pathFindingWorker;
-};
-
+}

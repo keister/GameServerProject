@@ -10,6 +10,7 @@
 #include "Common/Token.h"
 
 
+
 namespace chat
 {
 	bool HandlePacket_ChatServer(ChatServer* server, Player& player, Packet pkt)
@@ -119,5 +120,4 @@ namespace chat
 
 		return pkt;
 	}
-
 }

@@ -6,47 +6,50 @@
 #include "GameGroupBase.h"
 #include "Player.h"
 
-void GameObject::DestroyObject(GameObject* object)
+void game::GameObject::DestroyObject(GameObject* object)
 {
 	_owner->DestroyObject(object);
 }
 
-void GameObject::SendPacket(uint64 sessionId, Packet pkt)
+void game::GameObject::SendPacket(uint64 sessionId, Packet pkt)
 {
 	_owner->SendPacket(sessionId, pkt);
 }
 
-void GameObject::SendPacket(int32 sectorRange, Packet pkt)
+/// @brief 자신이 속한 섹터를 기준으로 주변 범위를 지정하여 해당 섹터에있는 모든 유저에게 패킷을 보낸다.
+void game::GameObject::SendPacket(int32 sectorRange, Packet pkt)
 {
 	_owner->SendPacket(_sector, sectorRange, pkt);
 }
 
-void GameObject::SendPacket(int32 sectorRange, Packet pkt, uint64 except)
+void game::GameObject::SendPacket(int32 sectorRange, Packet pkt, uint64 except)
 {
 	_owner->SendPacket(_sector, sectorRange, pkt, except);
 }
 
-void GameObject::SendPacket(int32 sectorRange, Packet pkt, list<uint64>& exceptSession)
+void game::GameObject::SendPacket(int32 sectorRange, Packet pkt, list<uint64>& exceptSession)
 {
 	_owner->SendPacket(_sector, sectorRange, pkt, exceptSession);
 }
 
-float32 GameObject::DeltaTime()
+/// @brief 이전프레임으로 부터 걸린시간
+float32 game::GameObject::DeltaTime()
 {
 	return _owner->DeltaTime();
 }
 
-void GameObject::Invoke(function<void()>&& func, DWORD afterTick)
+void game::GameObject::Invoke(function<void()>&& func, DWORD afterTick)
 {
 	_owner->Invoke(this, std::move(func), afterTick);
 }
 
-void GameObject::Invoke(function<void()>&& func, float32 afterTime)
+
+void game::GameObject::Invoke(function<void()>&& func, float32 afterTime)
 {
 	_owner->Invoke(this, std::move(func), afterTime);
 }
 
-void GameObject::MovePosition(float32 x, float32 y)
+void game::GameObject::MovePosition(float32 x, float32 y)
 {
 	Sector* newSector = _owner->FindSectorByPostion(x, y);
 	if (newSector == _sector)
@@ -146,7 +149,7 @@ void GameObject::MovePosition(float32 x, float32 y)
 	//OnSectorEnter(spawnSectorRange);
 }
 
-void GameObject::MoveTowards(const Eigen::Vector2<float32>& target, float32 maxDistance)
+void game::GameObject::MoveTowards(const Eigen::Vector2<float32>& target, float32 maxDistance)
 {
 	Eigen::Vector2<float32> dir = target - position;
 	float32 distance = dir.norm();
@@ -163,7 +166,7 @@ void GameObject::MoveTowards(const Eigen::Vector2<float32>& target, float32 maxD
 	MovePosition(newPos.x(), newPos.y());
 }
 
-void GameObject::LookAt(const Eigen::Vector2<float32>& target)
+void game::GameObject::LookAt(const Eigen::Vector2<float32>& target)
 {
 	Eigen::Vector2<float32> dir = target - position;
 	if (dir == Eigen::Vector2<float32>::Zero())
@@ -174,27 +177,27 @@ void GameObject::LookAt(const Eigen::Vector2<float32>& target)
 	yaw = atan2(dir.x(), dir.y()) * (180.0f / numbers::pi_v<float32>);
 }
 
-void FixedObject::SendPacket(uint64 sessionId, Packet pkt)
+void game::FixedObject::SendPacket(uint64 sessionId, Packet pkt)
 {
 	_owner->SendPacket(sessionId, pkt);
 }
 
-float32 FixedObject::DeltaTime()
+float32 game::FixedObject::DeltaTime()
 {
 	return _owner->DeltaTime();
 }
 
-void FixedObject::DestroyObject(GameObject* object)
+void game::FixedObject::DestroyObject(GameObject* object)
 {
 	_owner->DestroyObject(object);
 }
 
-void FixedObject::Invoke(function<void()>&& func, DWORD afterTick)
+void game::FixedObject::Invoke(function<void()>&& func, DWORD afterTick)
 {
 	_owner->Invoke(this, std::move(func), afterTick);
 }
 
-void FixedObject::Invoke(function<void()>&& func, float32 afterTime)
+void game::FixedObject::Invoke(function<void()>&& func, float32 afterTime)
 {
 	_owner->Invoke(this, std::move(func), afterTime);
 }

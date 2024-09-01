@@ -11,9 +11,9 @@
 #include "SqlSession.h"
 
 
-void LobbyGroup::OnRecv(uint64 sessionId, Packet packet)
+void game::LobbyGroup::OnRecv(uint64 sessionId, Packet packet)
 {
-	Player* player = find_player(sessionId);
+	Player* player = FindPlayer(sessionId);
 	if (player == nullptr)
 	{
 		return;
@@ -23,7 +23,7 @@ void LobbyGroup::OnRecv(uint64 sessionId, Packet packet)
 }
 
 
-void LobbyGroup::Handle_C_GET_CHARACTER_LIST(Player& player)
+void game::LobbyGroup::Handle_C_GET_CHARACTER_LIST(Player& player)
 {
 	vector<Dto_S_GET_CHARACTER_LIST> list(player.numCharacters);
 
@@ -41,7 +41,7 @@ void LobbyGroup::Handle_C_GET_CHARACTER_LIST(Player& player)
 	SendPacket(player.SessionId(), Make_S_GET_CHARACTER_LIST(list));
 }
 
-void LobbyGroup::Handle_C_CREATE_CHARACTER(Player& player, wstring& nickname, int32 modelId, int32 weaponId)
+void game::LobbyGroup::Handle_C_CREATE_CHARACTER(Player& player, wstring& nickname, int32 modelId, int32 weaponId)
 {
 	CharacterInfo& info = player.AddCharacter(nickname, modelId, weaponId);
 
@@ -70,11 +70,9 @@ void LobbyGroup::Handle_C_CREATE_CHARACTER(Player& player, wstring& nickname, in
 		)
 	);
 
-
-
 }
 
-void LobbyGroup::Handle_C_GAME_ENTER(Player& player, uint64 characterId, int32 idx)
+void game::LobbyGroup::Handle_C_GAME_ENTER(Player& player, uint64 characterId, int32 idx)
 {
 	player.curIndex = idx;
 	player.spawnInfo = player.characterInfos[player.curIndex].pos;
@@ -87,6 +85,6 @@ void LobbyGroup::Handle_C_GAME_ENTER(Player& player, uint64 characterId, int32 i
 }
 
 
-LobbyGroup::~LobbyGroup()
+game::LobbyGroup::~LobbyGroup()
 {
 }

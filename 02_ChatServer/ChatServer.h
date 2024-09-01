@@ -7,15 +7,20 @@
 
 
 struct Token;
-class Job;
+
+namespace netlib
+{
+	class Job;
+}
 
 namespace chat
 {
+	
 
 	class Player;
 	using RedisSession = RedisCpp::CRedisConn;
 
-	class ChatServer : public ServerBase
+	class ChatServer : public netlib::ServerBase
 	{
 		enum
 		{
@@ -34,9 +39,9 @@ namespace chat
 		};
 
 	public:
-		ChatServer(const wstring& name);
+		ChatServer(const json& setting);
 		~ChatServer() override;
-		bool GetToken(uint64 accountId, Token& token);
+
 	protected:
 		void OnStart() override;
 		void OnStop() override;
@@ -44,14 +49,11 @@ namespace chat
 		void OnAccept(const NetworkAddress& netInfo, uint64 sessionId) override;
 		void OnDisconnect(uint64 sessionId) override;
 
-		Player* FindPlayer(uint64 sessionId);
-		void DeletePlayer(Player& player);
-		void InsertPlayer(Player& player);
-
 	protected:
 		void OnRecv(uint64 sessionId, Packet pkt) override;
 
 		//@@@AutoPackBegin
+
 		friend bool HandlePacket_ChatServer(ChatServer*, Player&, Packet);
 		void Handle_C_CHAT_LOGIN(Player& player, uint64 accountId, Token& token);
 		void Handle_C_CHAT_ENTER(Player& player, uint64 characterId);
@@ -62,24 +64,33 @@ namespace chat
 
 		//@@@AutoPackEnd
 
+	private:
+		Player* find_player(uint64 sessionId);
+		void	delete_player(Player& player);
+		void	insert_player(Player& player);
+		bool	get_token(uint64 accountId, Token& token);
 
 	private:
-		using PlayerMapType = unordered_map<uint64, Player*>;
-		using NicknameToPlayerMapType = unordered_map<wstring, Player*>;
+		//typedef
+		using PlayerAllocator			= ObjectPoolTls<Player, false>;
+		using PlayerSetType				= unordered_set<Player*>;
+		using PlayerMapType				= unordered_map<uint64, Player*>;
+		using NicknameToPlayerMapType	= unordered_map<wstring, Player*>;
 
-		ObjectPoolTls<Player, false> _playerPool;
-		DBReadThreadPool			_dbRead;
+		PlayerAllocator			_playerPool;
+		DBReadThreadPool		_dbRead;
 
-		PlayerMapType				_players;
-		NicknameToPlayerMapType		_nicknameToPlayer;
-		Lock						_playerMaplock;
-		Lock						_nicknameToPlayerLock;
+		PlayerMapType			_players;
+		Lock					_playerMaplock;
+		NicknameToPlayerMapType	_nicknameToPlayer;
+		Lock					_nicknameToPlayerLock;
+		PlayerSetType			_playersOnField[NUM_OF_FILEDS];
+		Lock					_fieldLock[NUM_OF_FILEDS];
 
-		RedisSession* _redis;
-		Lock						_redisLock;
+		RedisSession*			_redis;
+		Lock					_redisLock;
 
-		unordered_set<Player*>		_playersOnField[NUM_OF_FILEDS];
-		Lock						_fieldLock[NUM_OF_FILEDS];
+
 	};
 }
 

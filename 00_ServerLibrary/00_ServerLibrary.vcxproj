@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Containers.h" />
+    <ClInclude Include="CrashDump.h" />
+    <ClInclude Include="DateTime.h" />
+    <ClInclude Include="GroupBase.h" />
+    <ClInclude Include="GroupJob.h" />
+    <ClInclude Include="HardwareMonitor.h" />
+    <ClInclude Include="HeteroServerBase.h" />
+    <ClInclude Include="IocpObject.h" />
+    <ClInclude Include="IServer.h" />
+    <ClInclude Include="Job.h" />
+    <ClInclude Include="JobQueue.h" />
+    <ClInclude Include="LibraryIncludes.h" />
+    <ClInclude Include="Lock.h" />
+    <ClInclude Include="LockFreeQueue.h" />
+    <ClInclude Include="LockFreeQueue.hpp" />
+    <ClInclude Include="LockFreeStack.h" />
+    <ClInclude Include="LockFreeStack.hpp" />
+    <ClInclude Include="Logger.h" />
+    <ClInclude Include="Macro.h" />
+    <ClInclude Include="NetworkAddress.h" />
+    <ClInclude Include="NetworkClientBase.h" />
+    <ClInclude Include="ObjectPool.h" />
+    <ClInclude Include="ObjectPool.hpp" />
+    <ClInclude Include="ObjectPoolTls.h" />
+    <ClInclude Include="ObjectPoolTls.hpp" />
+    <ClInclude Include="Packet.h" />
+    <ClInclude Include="ProcessMonitor.h" />
+    <ClInclude Include="Profiler.h" />
+    <ClInclude Include="RawPacket.h" />
+    <ClInclude Include="RecvBuffer.h" />
+    <ClInclude Include="RingBuffer.h" />
+    <ClInclude Include="SendBuffer.h" />
+    <ClInclude Include="ServerBase.h" />
+    <ClInclude Include="Session.h" />
+    <ClInclude Include="SessionManager.h" />
+    <ClInclude Include="Socket.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Thread.h" />
+    <ClInclude Include="Types.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DateTime.cpp" />
+    <ClCompile Include="GroupBase.cpp" />
+    <ClCompile Include="GroupJob.cpp" />
+    <ClCompile Include="HardwareMonitor.cpp" />
+    <ClCompile Include="HeteroServerBase.cpp" />
+    <ClCompile Include="JobQueue.cpp" />
+    <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="NetworkAddress.cpp" />
+    <ClCompile Include="NetworkClientBase.cpp" />
+    <ClCompile Include="Packet.cpp" />
+    <ClCompile Include="ProcessMonitor.cpp" />
+    <ClCompile Include="Profiler.cpp" />
+    <ClCompile Include="RawPacket.cpp" />
+    <ClCompile Include="RecvBuffer.cpp" />
+    <ClCompile Include="RingBuffer.cpp" />
+    <ClCompile Include="SendBuffer.cpp" />
+    <ClCompile Include="ServerBase.cpp" />
+    <ClCompile Include="Session.cpp" />
+    <ClCompile Include="SessionManager.cpp" />
+    <ClCompile Include="Socket.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{6d629b78-87a5-435a-9f5e-8e8da47d0866}</ProjectGuid>
+    <RootNamespace>_00_ServerLibrary</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)Libs\ServerLibrary\</OutDir>
+    <IntDir>$(SolutionDir)Build\Obj\$(ProjectName)\</IntDir>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <TargetName>ServerLibrary</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <Optimization>Disabled</Optimization>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

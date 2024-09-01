@@ -1,22 +1,29 @@
 #pragma once
 #include "JobQueue.h"
 
-
-class Job;
-
-class DBWriter
+namespace netlib
 {
+	class Job;
+}
 
-public:
-	DBWriter();
-	~DBWriter();
-	static DBWriter& Instance();
+namespace game
+{
+	class DBWriter
+	{
+	public:
+		inline static Lock _lock;
+		static DBWriter& Instance();
+		static void Write(Job* job);
 
-	static void Write(Job* job);
-private:
-	void dbThread();
-	inline static Lock _lock;
-	JobQueue _queue;
-	HANDLE _handle;
-};
+	public:
+		DBWriter();
+		~DBWriter();
 
+	private:
+		void		dbwrite_thread_func();
+
+	private:
+		JobQueue	_queue;
+		HANDLE		_handle;
+	};
+}

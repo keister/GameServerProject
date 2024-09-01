@@ -4,101 +4,104 @@
 #include "HeteroServerBase.h"
 
 #include "../Libs/hiredis/CRedisConn.h"
-class GameHost;
-class GameGroupBase;
-class GameGroup_Town;
-class LoginGroup;
-class LobbyGroup;
-using RedisSession = RedisCpp::CRedisConn;
-
-class Player;
 struct Token;
 
-class GameServer : public HeteroServerBase
+namespace game
 {
+	class GameHost;
+	class GameGroupBase;
+	class GameGroup;
+	class LoginGroup;
+	class LobbyGroup;
+	using RedisSession = RedisCpp::CRedisConn;
 
-public:
-	GameServer(const wstring& name);
+	class Player;
 
-	template <typename T> requires is_base_of_v<GameHost, T>
-	T* GetHost(uint64 sessionId)
+	class GameServer : public HeteroServerBase
 	{
-		READ_LOCK(_lock);
 
-		auto findIt = _hosts.find(sessionId);
+	public:
+		GameServer(const json& setting);
 
-		if (findIt == _hosts.end())
+		template <typename T> requires is_base_of_v<GameHost, T>
+		T* GetHost(uint64 sessionId)
 		{
-			return nullptr;
-		}
+			READ_LOCK(_lock);
 
-		return (T*)findIt->second;
-	}
+			auto findIt = _hosts.find(sessionId);
 
-	template <typename T> 
-	T* AddHost(uint64 sessionId)
-	{
-		T* ret = GlobalPool<T>::Alloc();
-
-		{
-			WRITE_LOCK(_lock);
-			if (freeFunc == nullptr)
+			if (findIt == _hosts.end())
 			{
-				freeFunc = GlobalPool<T>::Free;
+				return nullptr;
 			}
-			ret->_sessionId = sessionId;
-			_hosts.insert({sessionId, ret});
+
+			return (T*)findIt->second;
 		}
 
-		return ret;
-	}
+		template <typename T> 
+		T* AddHost(uint64 sessionId)
+		{
+			T* ret = GlobalPool<T>::Alloc();
 
-	void RemoveHost(GameHost* ptr);
+			{
+				WRITE_LOCK(_lock);
+				if (freeFunc == nullptr)
+				{
+					freeFunc = GlobalPool<T>::Free;
+				}
+				ret->_sessionId = sessionId;
+				_hosts.insert({sessionId, ret});
+			}
 
-	bool GetToken(uint64 accountId, Token& token);
+			return ret;
+		}
 
-	GameGroupBase* GetGroup(Groups group)
-	{
-		return _groups[(int32)group];
-	}
+		void RemoveHost(GameHost* ptr);
 
-	uint64 GetPlayerCount(Groups group)
-	{
-		return _groups[(int32)group]->GetPlayerCount();
-	}
+		bool GetToken(uint64 accountId, Token& token);
 
-	uint64 GetFrameCount(Groups group)
-	{
-		return _groups[(int32)group]->GetFrameCount();
-	}
+		GameGroupBase* GetGroup(Groups group)
+		{
+			return _groups[(int32)group];
+		}
 
-	float32 Get()
-	{
-		return _groups[0]->DeltaTime();
-	}
+		uint64 GetPlayerCount(Groups group)
+		{
+			return _groups[(int32)group]->GetPlayerCount();
+		}
 
-protected:
-	void OnStart() override;
-	void OnStop() override;
-	bool OnConnectionRequest(const NetworkAddress& netInfo) override;
-	void OnAccept(const NetworkAddress& netInfo, uint64 sessionId) override;
-	void OnDisconnect(uint64 sessionId) override;
+		uint64 GetFrameCount(Groups group)
+		{
+			return _groups[(int32)group]->GetFrameCount();
+		}
+
+		float32 Get()
+		{
+			return _groups[0]->DeltaTime();
+		}
+
+	protected:
+		void OnStart() override;
+		void OnStop() override;
+		bool OnConnectionRequest(const NetworkAddress& netInfo) override;
+		void OnAccept(const NetworkAddress& netInfo, uint64 sessionId) override;
+		void OnDisconnect(uint64 sessionId) override;
 
 
 
-public:
-	~GameServer() override;
+	public:
+		~GameServer() override;
 
 
-private:
-	RedisSession* _redis;
-	unordered_map<uint64, GameHost*> _hosts;
-	Lock _lock;
+	private:
+		RedisSession* _redis;
+		unordered_map<uint64, GameHost*> _hosts;
+		Lock _lock;
 
-	GameGroupBase* _groups[(int32)Groups::NUM_GROUPS];
+		GameGroupBase* _groups[(int32)Groups::NUM_GROUPS];
 
-	using FreeFuncType = void(*)(void*);
+		using FreeFuncType = void(*)(void*);
 
-	FreeFuncType freeFunc = nullptr;
-};
-
+		FreeFuncType freeFunc = nullptr;
+	};
+}

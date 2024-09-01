@@ -1,21 +1,20 @@
 #include "stdafx.h"
 #include "CrashDump.h"
-#include "ServerConfig.h"
 
 #include "ChatServer.h" 
 #include "Profiler.h"
 #include "Packet.h"
+#include "common/AppSettings.h"
 CrashDump cd;
 
 using namespace chat;
 
 int main()
 {
-	ServerConfig::AddPath(L"../ServerConfig.ini");
 
 	SET_LOG_LEVEL(LogLevel::DBG);
 
-	ChatServer server(L"ChatServer");
+	ChatServer server(AppSettings::GetSection("ChatServer"));
 
 	uint64 prevAuthCount = 0;
 	uint64 prevAcceptCount = 0;

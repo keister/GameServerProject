@@ -25,16 +25,12 @@ namespace chat
 				uniqueLock, [&] {return !_jobQueue.empty(); }
 			);
 
-			while (!_jobQueue.empty())
-			{
-				Job* job = _jobQueue.front();
-				job->Execute();
-				Job::Free(job);
-				_jobQueue.pop();
-			}
-
-
+			Job* job = _jobQueue.front();
+			_jobQueue.pop();
 			uniqueLock.unlock();
+
+			job->Execute();
+			Job::Free(job);
 		}
 
 	}

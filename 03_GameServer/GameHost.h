@@ -1,34 +1,37 @@
 #pragma once
-class GameObject;
-class GameServer;
 
-class GameHost
+
+namespace game
 {
-	friend GameServer;
+	class GameObject;
+	class GameServer;
 
-public:
-	uint64 SessionId() { return _sessionId; }
-	uint64 AttachObject(GameObject* object);
-	void   DetachObject();
-
-	GameObject* GetGameObject()
+	class GameHost
 	{
-		if (_attachObject == nullptr)
+		friend GameServer;
+
+	public:
+		uint64 SessionId() const { return _sessionId; }
+
+		uint64 AttachObject(GameObject* object);
+		void   DetachObject();
+
+		GameObject* GetGameObject()
 		{
-			return nullptr;
+			if (_attachObject == nullptr)
+			{
+				return nullptr;
+			}
+
+			return _attachObject;
 		}
 
-		return _attachObject;
-	}
+		virtual ~GameHost();
 
-	void OnEnter();
-	void OnLeave();
-
-	virtual ~GameHost();
-
-private:
-	uint64 _sessionId;
-	GameObject* _attachObject;
-};
+	private:
+		uint64 _sessionId;
+		GameObject* _attachObject;
+	};
+}
 
 

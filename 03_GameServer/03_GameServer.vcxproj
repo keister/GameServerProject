@@ -12,7 +12,7 @@
     <ClCompile Include="DBWriter.cpp" />
     <ClCompile Include="FieldManager.cpp" />
     <ClCompile Include="GameGroupBase.cpp" />
-    <ClCompile Include="GameGroup_Town.cpp" />
+    <ClCompile Include="GameGroup.cpp" />
     <ClCompile Include="GameHost.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="GameServer.cpp" />
@@ -23,10 +23,8 @@
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="MapData.cpp" />
     <ClCompile Include="Monster.cpp" />
-    <ClCompile Include="MonsterData.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
     <ClCompile Include="PathFinder.cpp" />
-    <ClCompile Include="PathFindingTestObject.cpp" />
     <ClCompile Include="PathFindingWorker.cpp" />
     <ClCompile Include="PathReceiver.cpp" />
     <ClCompile Include="Player.cpp" />
@@ -42,7 +40,7 @@
     <ClInclude Include="DBWriter.h" />
     <ClInclude Include="FieldManager.h" />
     <ClInclude Include="GameGroupBase.h" />
-    <ClInclude Include="GameGroup_Town.h" />
+    <ClInclude Include="GameGroup.h" />
     <ClInclude Include="GameHost.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GameServer.h" />
@@ -109,7 +107,7 @@
       <Optimization>Disabled</Optimization>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(SolutionDir)Libs\MySQL\include\;D:\Portfolio\ServerLibrary;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Libs\MySQL\include\;$(SolutionDir)00_ServerLibrary\;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
     </ClCompile>
     <Link>

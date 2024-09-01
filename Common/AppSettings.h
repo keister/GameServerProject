@@ -1,7 +1,7 @@
 #pragma once
 class AppSettings
 {
-	inline static Lock _lock;
+	inline static netlib::Lock _lock;
 
 	static AppSettings& Instance()
 	{

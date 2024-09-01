@@ -1,24 +1,26 @@
 #pragma once
 
-
-template <typename T>
-class GlobalPool
+namespace game
 {
-public:
-	template<typename ...Args>
-	static T* Alloc(Args... args)
+	/// @brief 전역의 오브젝트풀을 자동으로 생성하여준다.
+	template <typename T>
+	class GlobalPool
 	{
-		return _pool.Alloc(args...);
+	public:
+		template<typename ...Args>
+		static T* Alloc(Args... args)
+		{
+			return _pool.Alloc(args...);
 
-	}
+		}
 
 
-	static void Free(void* ptr)
-	{
-		_pool.Free((T*)ptr);
-	}
+		static void Free(void* ptr)
+		{
+			_pool.Free((T*)ptr);
+		}
 
-private:
-	inline static ObjectPoolTls<T> _pool;
-};
-
+	private:
+		inline static ObjectPoolTls<T> _pool;
+	};
+}

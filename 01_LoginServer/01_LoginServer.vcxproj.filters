@@ -4,6 +4,9 @@
     <Filter Include="Main">
       <UniqueIdentifier>{e1517d75-8dba-4d54-9184-b05414d4b18f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DB">
+      <UniqueIdentifier>{1ac9e085-c4da-4f5a-a1f3-7117cd4ace1a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -12,20 +15,31 @@
     <ClCompile Include="main.cpp">
       <Filter>Main</Filter>
     </ClCompile>
-    <ClCompile Include="LoginServer.cpp" />
     <ClCompile Include="PacketHandler.cpp">
       <Filter>Main</Filter>
     </ClCompile>
-    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="LoginServer.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="SqlSession.cpp">
+      <Filter>DB</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
       <Filter>Main</Filter>
     </ClInclude>
-    <ClInclude Include="LoginServer.h" />
     <ClInclude Include="PacketHandler.h">
       <Filter>Main</Filter>
     </ClInclude>
-    <ClInclude Include="Player.h" />
+    <ClInclude Include="LoginServer.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="SqlSession.h">
+      <Filter>DB</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

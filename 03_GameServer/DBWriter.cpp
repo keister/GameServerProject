@@ -5,7 +5,7 @@
 #include "Thread.h"
 
 
-void DBWriter::dbThread()
+void game::DBWriter::dbwrite_thread_func()
 {
 	while (true)
 	{
@@ -20,17 +20,17 @@ void DBWriter::dbThread()
 }
 
 
-DBWriter::DBWriter()
+game::DBWriter::DBWriter()
 {
-	_handle = RunThread(&DBWriter::dbThread, this);
+	_handle = RunThread(&DBWriter::dbwrite_thread_func, this);
 }
 
-DBWriter::~DBWriter()
+game::DBWriter::~DBWriter()
 {
 	CloseHandle(_handle);
 }
 
-DBWriter& DBWriter::Instance()
+game::DBWriter& game::DBWriter::Instance()
 {
 	static DBWriter* instance = nullptr;
 	if (instance == nullptr)
@@ -45,7 +45,7 @@ DBWriter& DBWriter::Instance()
 	return *instance;
 }
 
-void DBWriter::Write(Job* job)
+void game::DBWriter::Write(Job* job)
 {
 	Instance()._queue.Enqueue(job);
 }

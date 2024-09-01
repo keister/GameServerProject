@@ -4,37 +4,37 @@
 #include "GameObject.h"
 #include "Route.h"
 
-PathReceiver::PathReceiver(GameObject* object)
+game::PathReceiver::PathReceiver(GameObject* object)
 	: _object(object)
 	, _executionCounter(0)
 {
 	_cur = _route.begin();
 }
 
-PathReceiver::~PathReceiver()
+game::PathReceiver::~PathReceiver()
 {
 }
 
-Route& PathReceiver::GetRoute()
+game::Route& game::PathReceiver::GetRoute()
 { return _route; }
 
-void PathReceiver::RequestPathFinding(const Position& destination)
+void game::PathReceiver::RequestPathFinding(const Position& destination)
 {
 	_executionCounter++;
 	_object->_owner->GetMap()->RequestPathFinding(_object, destination);
 }
 
-void PathReceiver::IgnorePreviousPath()
+void game::PathReceiver::IgnorePreviousPath()
 {
 	_executionCounter++;
 	_route.Destroy();
 	ResetCurrentTargetPosition();
 }
 
-void PathReceiver::ResetCurrentTargetPosition()
+void game::PathReceiver::ResetCurrentTargetPosition()
 { _cur = _route.begin(); }
 
-void PathReceiver::SetNextTargetPosition()
+void game::PathReceiver::SetNextTargetPosition()
 {
 	if (_route.end() == _cur)
 	{
@@ -43,10 +43,10 @@ void PathReceiver::SetNextTargetPosition()
 	++_cur;
 }
 
-RouteIterator PathReceiver::CurrentTargetPosition()
+game::RouteIterator game::PathReceiver::CurrentTargetPosition()
 { return _cur; }
 
-RawPacket& operator<<(RawPacket& pkt, const PathReceiver& data)
+RawPacket& game::operator<<(RawPacket& pkt, const PathReceiver& data)
 {
 	list<RouteIterator> l;
 
@@ -64,5 +64,4 @@ RawPacket& operator<<(RawPacket& pkt, const PathReceiver& data)
 
 	return pkt;
 }
-
 

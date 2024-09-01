@@ -8,7 +8,7 @@
 #include "PacketHandler.h"
 
 
-Monster::Monster(uint64 id, const MonsterInfo* info)
+game::Monster::Monster(uint64 id, const game::MonsterInfo* info)
 	: id(id), info(info)
 {
 	monsterId = info->id;
@@ -25,7 +25,7 @@ Monster::Monster(uint64 id, const MonsterInfo* info)
 	_followTimer = 0.f;
 }
 
-void Monster::OnUpdate()
+void game::Monster::OnUpdate()
 {
 
 	_attackTimer += DeltaTime();
@@ -73,13 +73,20 @@ void Monster::OnUpdate()
 						_isAttack = false;
 					}, castTime);
 
-				Character* character = target;
-				int32 attackDmg = attackDamage;
-				character->Invoke([character, attackDmg]
+
+
+
+				target->Invoke([character = target, attackDmg = attackDamage]
 					{
 						character->DecreaseHp(attackDmg);
 					},
 					castTime);
+
+				if (target->Hp() - attackDamage <= 0)
+				{
+					target = nullptr;
+				}
+
 				_attackTimer = 0.f;
 			}
 		}
@@ -115,7 +122,7 @@ void Monster::OnUpdate()
 	}
 }
 
-void Monster::OnSpawnRequest(const list<GameHost*>& sessionList)
+void game::Monster::OnSpawnRequest(const list<GameHost*>& sessionList)
 {
 	Packet pkt = Make_S_SPAWN_MONSTER(
 		id,
@@ -142,7 +149,7 @@ void Monster::OnSpawnRequest(const list<GameHost*>& sessionList)
 	}
 }
 
-void Monster::OnDestroyRequest(const list<GameHost*>& sessionList)
+void game::Monster::OnDestroyRequest(const list<GameHost*>& sessionList)
 {
 	Packet pkt = Make_S_DESTROY_OBJECT((uint8)ObjectType::MONSTER, id);
 
@@ -152,7 +159,7 @@ void Monster::OnDestroyRequest(const list<GameHost*>& sessionList)
 	}
 }
 
-void Monster::OnPathFindingCompletion()
+void game::Monster::OnPathFindingCompletion()
 {
 	Packet movePacket = Make_S_MOVE_OBJECT(
 		(uint8)ObjectType::MONSTER,

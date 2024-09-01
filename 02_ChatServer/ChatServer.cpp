@@ -6,16 +6,28 @@
 #include "PacketHandler.h"
 #include "Job.h"
 #include "SqlSession.h"
+#include "common/AppSettings.h"
 #include "Common/Token.h"
 
 namespace chat
 {
-	ChatServer::ChatServer(const wstring& name)
-		: ::ServerBase(name)
+	ChatServer::ChatServer(const json& setting)
+		: ServerBase(
+			NetworkAddress(INADDR_ANY, setting["port"].get<uint16>()),
+			setting["worker_thread"].get<int32>(),
+			setting["concurrent_thread"].get<int32>(),
+			setting["session_limit"].get<int32>()
+		)
 		, _dbRead(2)
 	{
+		EnablePacketEncoding(setting["packet_code"].get<BYTE>(), setting["packet_key"].get<BYTE>());
 		_redis = new RedisSession();
-		bool ret = _redis->connect("procademyserver.iptime.org", 11772, "", 3000);
+		bool ret = _redis->connect(
+			AppSettings::GetSection("Redis")["host"].get<string>(),
+			AppSettings::GetSection("Redis")["port"].get<uint16>(),
+			"",
+			3000
+		);
 	}
 
 	void ChatServer::OnStart()
@@ -40,12 +52,12 @@ namespace chat
 			player->Init(sessionId);
 		}
 
-		InsertPlayer(*player);
+		insert_player(*player);
 	}
 
 	void ChatServer::OnDisconnect(uint64 sessionId)
 	{
-		Player* player = FindPlayer(sessionId);
+		Player* player = find_player(sessionId);
 
 		if (player == nullptr)
 		{
@@ -54,7 +66,7 @@ namespace chat
 		else
 		{
 
-			DeletePlayer(*player);
+			delete_player(*player);
 
 			WRITE_LOCK(player->lock);
 
@@ -75,7 +87,7 @@ namespace chat
 		}
 	}
 
-	Player* ChatServer::FindPlayer(uint64 sessionId)
+	Player* ChatServer::find_player(uint64 sessionId)
 	{
 		READ_LOCK(_playerMaplock);
 
@@ -89,13 +101,13 @@ namespace chat
 		return findIt->second;
 	}
 
-	void ChatServer::DeletePlayer(Player& player)
+	void ChatServer::delete_player(Player& player)
 	{
 		WRITE_LOCK(_playerMaplock);
 		_players.erase(player.SessionId());
 	}
 
-	void ChatServer::InsertPlayer(Player& player)
+	void ChatServer::insert_player(Player& player)
 	{
 		WRITE_LOCK(_playerMaplock);
 		_players.insert({ player.SessionId(), &player });
@@ -105,7 +117,12 @@ namespace chat
 	{
 	}
 
-	bool ChatServer::GetToken(uint64 accountId, Token& token)
+
+	/// @brief Redis 서버에서 accountId로 로그인서버에서 등록한 토큰정보를 가져온다.
+	/// @param accountId	로그인서버 account ID
+	/// @param token		토큰을 담을 공간
+	/// @return 성공 / 실패
+	bool ChatServer::get_token(uint64 accountId, Token& token)
 	{
 		WRITE_LOCK(_redisLock);
 		bool result = _redis->get(to_string(accountId), token.token);
@@ -115,7 +132,7 @@ namespace chat
 
 	void ChatServer::OnRecv(uint64 sessionId, Packet pkt)
 	{
-		Player* player = FindPlayer(sessionId);
+		Player* player = find_player(sessionId);
 		if (player == nullptr)
 		{
 			CRASH();
@@ -123,9 +140,10 @@ namespace chat
 
 		WRITE_LOCK(player->lock);
 
+		// 플레이어를 재사용하기 때문에, 이전 플레이어의 패킷이 올 수 있음
 		if (sessionId != player->SessionId())
 		{
-			LOG_ERR(L"ChattServer", L"Not Match Session Id (origin : %d, wrong : %d)", sessionId, player->SessionId());
+			LOG_ERR(L"ChatServer", L"Not Match Session Id (origin : %d, wrong : %d)", sessionId, player->SessionId());
 			return;
 		}
 		HandlePacket_ChatServer(this, *player, pkt);
@@ -134,16 +152,17 @@ namespace chat
 	void ChatServer::Handle_C_CHAT_LOGIN(Player& player, uint64 accountId, Token& token)
 	{
 		Token tk;
-		GetToken(accountId, tk);
+		get_token(accountId, tk);
 
 		if (tk != token)
 		{
 			SendPacket(player.SessionId(), Make_S_CHAT_LOGIN(false));
 			return;
 		}
-		uint64 sessionId = player.SessionId();
+
+		// 읽기작업 비동기 요청
 		_dbRead.ExecuteAsync(Job::Alloc(
-			[this, &player, accountId, sessionId]
+			[this, &player, accountId, sessionId = player.SessionId()]
 			{
 				WRITE_LOCK(player.lock);
 				if (sessionId != player.SessionId())
@@ -154,25 +173,38 @@ namespace chat
 
 				SqlSession& sql = GetSqlSession();
 
-				mysqlx::Schema sch = sql.getSchema("game");
-				mysqlx::RowResult result = sch.getTable("player")
-					.select("id")
-					.where("account_id = :ID")
-					.bind("ID", accountId)
-					.execute();
+				try
+				{
+					mysqlx::Schema sch = sql.getSchema("game");
+					mysqlx::RowResult result = sch.getTable("player")
+						.select("id")
+						.where("account_id = :ID")
+						.bind("ID", accountId)
+						.execute();
 
-				mysqlx::Row row = result.fetchOne();
+					mysqlx::Row row = result.fetchOne();
 
-				player.SetPlayerId(row[0].get<uint64>());
-				SendPacket(player.SessionId(), Make_S_CHAT_LOGIN(true));
+					player.SetPlayerId(row[0].get<uint64>());
+					SendPacket(player.SessionId(), Make_S_CHAT_LOGIN(true));
+				}
+				catch (const mysqlx::Error& err)
+				{
+					const char* errStr = err.what();
+					wstring errString(errStr, errStr + strlen(errStr));
+					CRASH_LOG(L"DB", L"DB Fail : %s", errString.c_str());
+
+				}
 			}
-		));
+		)
+		);
 	}
 
 	void ChatServer::Handle_C_CHAT_ENTER(Player& player, uint64 characterId)
 	{
 		uint64 sessionId = player.SessionId();
 
+
+		// 읽기작업 비동기 요청
 		_dbRead.ExecuteAsync(Job::Alloc(
 			[=, this, &player]
 			{
@@ -221,6 +253,11 @@ namespace chat
 
 	void ChatServer::Handle_C_CHAT_MOVE_FIELD(Player& player, int32 fieldId)
 	{
+		if (player.FieldId() == fieldId)
+		{
+			return;
+		}
+
 		{
 			if (player.FieldId() != -1)
 			{

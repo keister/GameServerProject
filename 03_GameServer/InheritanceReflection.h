@@ -4,6 +4,7 @@
 
 class TypeInfo;
 
+/// @brief 맨 처음 타입의 정보를 초기화 하는데 사용한다.
 template <typename T> requires requires{typename T::SuperType; }
 struct TypeInfoInitializer
 {
@@ -27,9 +28,9 @@ struct TypeInfoInitializer
 class TypeInfo
 {
 public:
-	TypeInfo* super;
-	uint64 id;
-	const char* name;
+	TypeInfo*	super;	///< 부모의 타입
+	uint64		id;		///< typeid
+	const char* name;	///< type이름
 
 	template <typename T>
 	explicit TypeInfo(const TypeInfoInitializer<T>& info)

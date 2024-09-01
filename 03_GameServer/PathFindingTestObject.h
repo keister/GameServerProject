@@ -1,18 +1,21 @@
 #pragma once
 #include "GameObject.h"
 
-class PathFindingTestObject : GameObject
+
+namespace game
 {
-
-public:
-	PathFindingTestObject() {}
-protected:
-	void OnUpdate()
+	class PathFindingTestObject : GameObject
 	{
-		float32 randX = (float32)(rand() % 30);
-		float32 randY = (float32)(rand() % 30);
-		Position dest = { randX, randY };
-		GetPathReciever().RequestPathFinding(dest);
-	}
-};
 
+	public:
+		PathFindingTestObject() {}
+	protected:
+		void OnUpdate()
+		{
+			float32 randX = (float32)(rand() % 30);
+			float32 randY = (float32)(rand() % 30);
+			Position dest = { randX, randY };
+			GetPathReciever().RequestPathFinding(dest);
+		}
+	};
+}

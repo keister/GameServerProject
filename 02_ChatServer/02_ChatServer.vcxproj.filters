@@ -15,8 +15,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Main</Filter>
     </ClCompile>
-    <ClCompile Include="ChatServer.cpp" />
-    <ClCompile Include="Player.cpp" />
     <ClCompile Include="PacketHandler.cpp">
       <Filter>Main</Filter>
     </ClCompile>
@@ -26,13 +24,17 @@
     <ClCompile Include="SqlSession.cpp">
       <Filter>DB</Filter>
     </ClCompile>
+    <ClCompile Include="ChatServer.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
       <Filter>Main</Filter>
     </ClInclude>
-    <ClInclude Include="ChatServer.h" />
-    <ClInclude Include="Player.h" />
     <ClInclude Include="PacketHandler.h">
       <Filter>Main</Filter>
     </ClInclude>
@@ -41,6 +43,12 @@
     </ClInclude>
     <ClInclude Include="SqlSession.h">
       <Filter>DB</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatServer.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>Main</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

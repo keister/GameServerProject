@@ -2,7 +2,11 @@
 #include "GameHost.h"
 #include "GameObject.h"
 
-uint64 GameHost::AttachObject(GameObject* object)
+
+/// @brief 유저의 위치는 한 게임오브젝트에 투영하여 결정된다.
+/// @param object 투영할 오브젝트
+/// @return 
+uint64 game::GameHost::AttachObject(GameObject* object)
 {
 	(object)->_host = this;
 	_attachObject = object;
@@ -12,7 +16,7 @@ uint64 GameHost::AttachObject(GameObject* object)
 	return 0;
 }
 
-void GameHost::DetachObject()
+void game::GameHost::DetachObject()
 {
 	if (_attachObject == nullptr)
 		return;
@@ -22,7 +26,7 @@ void GameHost::DetachObject()
 }
 
 
-GameHost::~GameHost()
+game::GameHost::~GameHost()
 {
 	
 }

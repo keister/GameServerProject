@@ -11,7 +11,7 @@
 
 using namespace Eigen;
 
-Character::Factory& Character::Factory::Instance()
+game::Character::Factory& game::Character::Factory::Instance()
 {
 	static Factory* instance = nullptr;
 
@@ -32,7 +32,10 @@ Character::Factory& Character::Factory::Instance()
 	return *instance;
 }
 
-void Character::Factory::Create(CharacterInfo* info, mysqlx::Row& queryResult)
+/// @brief DB쿼리를 그대로 가져와서 CharacterInfo를 생성한다.
+/// @param info  info를 받을 OUT 파라미터
+/// @param queryResult db쿼리 결과
+void game::Character::Factory::Create(CharacterInfo* info, mysqlx::Row& queryResult)
 {
 	info->id = queryResult[0].get<uint64>();
 	info->idx = queryResult[1].get<int32>();
@@ -51,9 +54,10 @@ void Character::Factory::Create(CharacterInfo* info, mysqlx::Row& queryResult)
 	info->fieldId = queryResult[14].get<int32>();
 }
 
-void Character::Factory::Create(CharacterInfo* info, uint64 playerId, int32 idx, const wstring& nickname, int32 modelId, int32 weaponId)
+void game::Character::Factory::Create(CharacterInfo* info, uint64 playerId, int32 idx, const wstring& nickname, int32 modelId, int32 weaponId)
 {
-	uint64 id = InterlockedIncrement64((LONGLONG*)&_idGen) - 1;
+	uint64 idGen = Instance()._idGen;
+	uint64 id = InterlockedIncrement64((LONGLONG*)&idGen) - 1;
 
 	info->id = id;
 	info->idx = idx;
@@ -62,23 +66,23 @@ void Character::Factory::Create(CharacterInfo* info, uint64 playerId, int32 idx,
 	info->weaponId = weaponId;
 	info->level = 1;
 	info->exp = 0;
-	info->pos.y() = 0;
-	info->pos.x() = 0;
+	info->pos.y() = 4;
+	info->pos.x() = 10;
 	info->hp = 100;
 	info->maxHp = 100;
 	info->maxMp = 100;
 	info->mp = 100;
-	info->speed = 1;
+	info->speed = 3;
 	info->fieldId = 0;
 
 }
 
-void Character::Factory::Destroy(Character* ptr)
+void game::Character::Factory::Destroy(Character* ptr)
 {
 	Instance()._pool.Free(ptr);
 }
 
-Character::Character(uint64 playerId, CharacterInfo& info)
+game::Character::Character(uint64 playerId, CharacterInfo& info)
 {
 	_id = info.id;
 	_playerId = playerId;
@@ -94,33 +98,43 @@ Character::Character(uint64 playerId, CharacterInfo& info)
 	_mp = info.mp;
 	_speed = info.speed;
 	_fieldId = info.fieldId;
-	_target = position;
 }
 
-void Character::DecreaseHp(int32 amount)
+void game::Character::DecreaseHp(int32 amount)
 {
 	_hp -= amount;
 
 	Packet pkt = Make_S_DAMAGE((uint8)ObjectType::PLAYER, _playerId, _hp);
 
 	SendPacket(AROUND, pkt);
+
+	if (_hp <= 0)	// 사망
+	{
+		GetPathReciever().IgnorePreviousPath();
+		Packet deathPacket = Make_S_CHARACTER_DEATH(_playerId);
+		SendPacket(AROUND, deathPacket);
+	}
 }
 
-void Character::OnUpdate()
+void game::Character::OnUpdate()
 {
+	// 목적지에 도착했으면 정지
 	if (GetPathReciever().CurrentTargetPosition() == GetPathReciever().GetRoute().end())
 	{
 		return;
 	}
 
+	// 현재 목적지 위치로 이동
 	MoveTowards(*GetPathReciever().CurrentTargetPosition(), _speed * DeltaTime());
+
+	// 현재 목적지에 도착했다면, 다음 목적지로 변경
 	if (position == *GetPathReciever().CurrentTargetPosition())
 	{
 		GetPathReciever().SetNextTargetPosition();
 	}
 }
 
-void Character::OnSpawnRequest(const list<GameHost*>& sessionList)
+void game::Character::OnSpawnRequest(const list<GameHost*>& sessionList)
 {
 	Packet pkt = Make_S_SPAWN_CHARACTER(
 		_playerId,
@@ -138,13 +152,19 @@ void Character::OnSpawnRequest(const list<GameHost*>& sessionList)
 		yaw
 	);
 
-
 	Packet movePacket = Make_S_MOVE(_playerId, GetPathReciever());
 
 	for (GameHost* host : sessionList)
 	{
 		SendPacket(host->SessionId(), pkt);
-		if (!GetPathReciever().GetRoute().IsEmpty())
+
+		if (_hp <= 0) // 죽은 상태이면 사망 패킷 보냄
+		{
+			Packet deathPacket = Make_S_CHARACTER_DEATH(_playerId);
+			SendPacket(AROUND, deathPacket);
+		}
+
+		if (!GetPathReciever().GetRoute().IsEmpty()) // 움직이는 중이었다면 현재위치부터 남은 경로를 보냄
 		{
 			SendPacket(host->SessionId(), movePacket);
 		}
@@ -152,7 +172,7 @@ void Character::OnSpawnRequest(const list<GameHost*>& sessionList)
 
 }
 
-void Character::OnDestroyRequest(const list<GameHost*>& sessionList)
+void game::Character::OnDestroyRequest(const list<GameHost*>& sessionList)
 {
 	Packet pkt = Make_S_DESTROY_CHARACTER(_playerId);
 	for (GameHost* host : sessionList)
@@ -161,70 +181,24 @@ void Character::OnDestroyRequest(const list<GameHost*>& sessionList)
 	}
 }
 
-void Character::OnPathFindingCompletion()
+int32 game::Character::IncreaseExp(int32 val)
+{
+	_exp += val;
+	if (_exp >= _level * 100)
+	{
+		_exp -= _level * 100;
+		_level++;
+
+		SendPacket(_host->SessionId(), Make_S_LEVEL_UP(_level));
+	}
+
+
+	return _exp;
+}
+
+void game::Character::OnPathFindingCompletion()
 {
 	Packet pkt = Make_S_MOVE(_playerId, GetPathReciever());
 
 	SendPacket(AROUND, pkt);
 }
-
-// void Character::OnSectorLeave(int32 sectorRange)
-// {
-// 	SendPacket(sectorRange, );
-// 	ExecuteForEachHost<Player>(sectorRange,
-// 		[this](Player* p)
-// 		{
-// 			if (p == _host)
-// 			{
-// 				return;
-// 			}
-//
-// 			SendPacket(_host->SessionId(), Make_S_DESTROY_CHARACTER(p->id));
-// 		});
-// }
-//
-// void Character::OnSectorEnter(int32 sectorRange)
-// {
-// 	SendPacket(sectorRange, Make_S_SPAWN_CHARACTER(
-// 		_playerId,
-// 		_nickname,
-// 		_level,
-// 		position.y(),
-// 		position.x(),
-// 		_hp,
-// 		_speed,
-// 		_modelId,
-// 		_weaponId,
-// 		yaw
-// 	));
-//
-// 	// ExecuteForEachHost<Player>(sectorRange,
-// 	// 	[this](Player* p)
-// 	// 	{
-// 	// 		if (p == _host)
-// 	// 		{
-// 	// 			return;
-// 	// 		}
-// 	// 		Character* curCharacter = p->curCharacter;
-// 	//
-// 	// 		SendPacket(_host->SessionId(), Make_S_SPAWN_CHARACTER(
-// 	// 			p->id,
-// 	// 			curCharacter->Nickname(),
-// 	// 			curCharacter->Level(),
-// 	// 			curCharacter->position.y(),
-// 	// 			curCharacter->position.x(),
-// 	// 			curCharacter->Hp(),
-// 	// 			curCharacter->Speed(),
-// 	// 			curCharacter->ModelId(),
-// 	// 			curCharacter->WeaponId(),
-// 	// 			curCharacter->yaw
-// 	// 		));
-// 	//
-// 	// 		if (curCharacter->Target() != curCharacter->position)
-// 	// 		{
-//
-// 	// 		}
-// 	// 	});
-// }
-//
-//

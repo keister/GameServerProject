@@ -1,11 +1,13 @@
 #pragma once
 
-enum class Groups
+namespace game
 {
-	TOWN,
-	CEMETERY,
-	LOGIN,
-	LOBBY,
-	FIELD,
-	NUM_GROUPS,
-};
+	enum class Groups
+	{
+		CANYON,
+		CEMETERY,
+		LOGIN,
+		LOBBY,
+		NUM_GROUPS,
+	};
+}

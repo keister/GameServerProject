@@ -9,5 +9,6 @@
 #include "Libs/Json/json.hpp"
 using json = nlohmann::json;
 using namespace std;
+using namespace netlib;
 
 //#define PROFILE

@@ -6,32 +6,39 @@
 #include "NetworkAddress.h"
 #include "Player.h"
 #include "PacketHandler.h"
+#include "SqlSession.h"
+#include "common/AppSettings.h"
 #include "Common/PacketDefine.h"
+
+
 
 namespace login
 {
-	LoginServer::LoginServer(const wstring& name)
-		: ServerBase(name)
-		, _dbConnectionTlsIndex(TlsAlloc())
-		, _redisConnectionTlsIndex(TlsAlloc())
-	{
-
-
-		_gameServerIps = { L"127.0.0.1" };
-		_gameServerPorts = { 11757 };
-		_chatServerIps = { L"127.0.0.1" };
-		_chatServerPorts = { 11755 };
-
-		//_monitoringClient = new MonitoringClient({ L"127.0.0.1", 11704 }, 1, 1, false, 109, 30);
-		//_monitoringClient->Connect();
-		//_monitorThread = RunThread(&LoginServer::func_monitor_thread, this);
-
-		_redis = new RedisSession();
-		_redis->connect("127.0.0.1", 11772);
-	}
-
 	LoginServer::~LoginServer()
 	{
+	}
+
+	LoginServer::LoginServer(const json& setting)
+		: ServerBase(
+			NetworkAddress(INADDR_ANY, setting["port"].get<uint16>()),
+			setting["worker_thread"].get<int32>(),
+			setting["concurrent_thread"].get<int32>(),
+			setting["session_limit"].get<int32>()
+		)
+	{
+
+		EnablePacketEncoding(setting["packet_code"].get<BYTE>(), setting["packet_key"].get<BYTE>());
+		_redis = new RedisSession();
+		_redis->connect(
+			AppSettings::GetSection("Redis")["host"].get<string>(),
+			AppSettings::GetSection("Redis")["port"].get<uint16>(),
+			"",
+			3000
+		);
+
+		_gameServerPorts = { 11757 };
+
+		RunThread(&LoginServer::func_timeout_thread, this);
 	}
 
 	void LoginServer::OnStart()
@@ -54,13 +61,14 @@ namespace login
 
 	void LoginServer::OnDisconnect(uint64 sessionId)
 	{
-		delete_user(sessionId);
+		delete_player(sessionId);
 
 	}
 
 	void LoginServer::OnRecv(uint64 sessionId, Packet pkt)
 	{
-		Player* player = find_user(sessionId);
+		Player* player = find_player(sessionId);
+		player->lastRecvTime = GetTickCount64();
 
 		HandlePacket_LoginServer(this, *player, pkt);
 
@@ -68,7 +76,8 @@ namespace login
 
 	void LoginServer::Handle_C_REQ_LOGIN(Player& player, int64 accountNo, Token& token)
 	{
-		SQLSession& session = get_sql_session();
+
+		// 플랫폼에 인증정보 검증 요청
 		httplib::Client cli("https://procademyserver.iptime.org:11731");
 		cli.enable_server_certificate_verification(false);
 
@@ -91,12 +100,15 @@ namespace login
 
 		if (accountNo != accountId)
 		{
-			//return fail
+			SendPacket(player.sessionId, Make_S_RES_LOGIN(accountNo, false, {}));
+			return;
 		}
 
+		// 무작위 문자열 토큰 생성
 		Token gameToken;
 		Token::Generate(&gameToken);
 
+		SqlSession& session = GetSqlSession();
 		mysqlx::Schema sch = session.getSchema("login");
 
 		uint64 id;
@@ -127,18 +139,16 @@ namespace login
 
 		}
 
-
-
-
-
-		if (set_token(id, gameToken) == false)
+		
+		if (set_token(id, gameToken) == false) // 토큰 불일치
 		{
 			LOG_DBG(L"LoginServer", L"Token insert Fail (%d)", accountNo);
 
-			//Packet& sendPkt = make_s_res_login(accountNo, 0, TODO, TODO, TODO, TODO);
-			//SendPacket(user.sessionId, sendPkt);
+			SendPacket(player.sessionId, Make_S_RES_LOGIN(accountNo, false, {}));
 			return;
 		}
+
+		player.isLogin = true;
 
 		SendPacket(player.sessionId, Make_S_RES_LOGIN(id, true, gameToken));
 		InterlockedIncrement64((LONGLONG*)&_authCount);
@@ -146,11 +156,10 @@ namespace login
 
 	void LoginServer::Handle_C_GET_SERVER_LIST(Player& player)
 	{
-
-		SendPacket(player.sessionId, Make_S_GET_SERVER_LIST(_gameServerIps, _gameServerPorts));
+		SendPacket(player.sessionId, Make_S_GET_SERVER_LIST(_gameServerPorts));
 	}
 
-	Player* LoginServer::find_user(uint64 sessionId)
+	Player* LoginServer::find_player(uint64 sessionId)
 	{
 		int32 mapIdx = sessionId % NUM_OF_USER_MAP;
 
@@ -159,8 +168,8 @@ namespace login
 		{
 			READ_LOCK(_mapLock[mapIdx]);
 
-			auto it = _userMap[mapIdx].find(sessionId);
-			if (it == _userMap[mapIdx].end())
+			auto it = _playerMap[mapIdx].find(sessionId);
+			if (it == _playerMap[mapIdx].end())
 			{
 				return nullptr;
 			}
@@ -171,11 +180,11 @@ namespace login
 
 	}
 
-	void LoginServer::delete_user(uint64 sessionId)
+	void LoginServer::delete_player(uint64 sessionId)
 	{
 		int32 mapIdx = sessionId % NUM_OF_USER_MAP;
 
-		Player* user = find_user(sessionId);
+		Player* user = find_player(sessionId);
 		if (user == nullptr)
 		{
 			return;
@@ -183,71 +192,26 @@ namespace login
 
 		{
 			WRITE_LOCK(_mapLock[mapIdx]);
-			_userMap[mapIdx].erase(user->sessionId);
+			_playerMap[mapIdx].erase(user->sessionId);
 		}
 
-		_userPool.Free(user);
-
-
+		_playerAllocator.Free(user);
 	}
 
-	void LoginServer::insert_user(uint64 sessionId, const NetworkAddress& netInfo)
+	void LoginServer::insert_player(uint64 sessionId)
 	{
-		Player* user = _userPool.Alloc();
+		Player* user = _playerAllocator.Alloc();
 		user->sessionId = sessionId;
-		user->ip = netInfo.GetIpAddress();
+		user->isLogin = false;
 		user->lastRecvTime = GetTickCount64();
 
+		// 세션아이디를 기반으로 map 분산
 		int32 mapIdx = sessionId % NUM_OF_USER_MAP;
 		WRITE_LOCK(_mapLock[mapIdx]);
-		_userMap[mapIdx].insert({ sessionId, user });
+		_playerMap[mapIdx].insert({ sessionId, user });
 
 	}
 
-
-
-	// Packet& LoginServer::make_SS_MONITOR_DATA_UPDATE(BYTE dataType, int32 dataValue, int32 timeStamp)
-	// {
-	// 	Packet& pkt = Packet::Alloc();
-	//
-	// 	pkt << (uint16)PacketType::SS_MONITOR_DATA_UPDATE << dataType << dataValue << timeStamp;
-	//
-	// 	return pkt;
-	// }
-
-	SQLSession& LoginServer::get_sql_session()
-	{
-		SQLSession* session = static_cast<SQLSession*>(TlsGetValue(_dbConnectionTlsIndex));
-
-		if (session == nullptr)
-		{
-			session = new SQLSession("localhost", 11771, "root", "as1234", "login");
-			TlsSetValue(_dbConnectionTlsIndex, session);
-		}
-
-		return *session;
-	}
-
-	RedisSession& LoginServer::get_redis_session()
-	{
-		RedisSession* session = static_cast<RedisSession*>(TlsGetValue(_redisConnectionTlsIndex));
-
-		if (session == nullptr)
-		{
-			session = new RedisSession;
-			{
-				WRITE_LOCK(_lockRedis);
-				session->connect("127.0.0.1", 11772);
-			}
-			TlsSetValue(_redisConnectionTlsIndex, session);
-		}
-		// if (session == nullptr)
-		// {
-		// 	session = new TokenStorage(L"127.0.0.1", 12530);
-		// 	TlsSetValue(_redisConnectionTlsIndex, session);
-		// }
-		return *session;
-	}
 
 	bool LoginServer::set_token(uint64 accountNo, const Token& token)
 	{
@@ -258,10 +222,11 @@ namespace login
 		return _redis->set(to_string(accountNo), token.token, retVal);
 	}
 
+
+
+	/// @brief 1초에 한번씩 유저들을 순회하며 커넥트만 하고 아무런 행동을 하지않는 유저들을 끊어낸다.
 	void LoginServer::func_timeout_thread()
 	{
-		DWORD idealTime = timeGetTime();
-		DWORD overTime = 0;
 		while (true)
 		{
 			uint64 now = GetTickCount64();
@@ -270,11 +235,15 @@ namespace login
 
 			for (int32 idx = 0; idx < NUM_OF_USER_MAP; idx++)
 			{
-				for (auto it : _userMap[idx])
+				READ_LOCK(_mapLock[idx]);
+				for (auto it : _playerMap[idx])
 				{
+					if (it.second->isLogin == true)
+					{
+						continue;
+					}
 
 					uint64 playerRecvTime = it.second->lastRecvTime;
-
 					if (playerRecvTime > now)
 					{
 						continue;
@@ -289,72 +258,17 @@ namespace login
 							it.second->sessionId, timeDiff, now, it.second->lastRecvTime);
 					}
 				}
-
-
-				// 순회하면서 Disconnect까지 해버리면 OnDisconnect에서 Lock을 또 잡아서 DeadLock이 발생할 수 있다.
-				// 따라서 DisconnectList에 넣어놓고 나중에 Disconnect를 호출한다.
-				for (uint64 sessionId : disconnectList)
-				{
-					Disconnect(sessionId);
-				}
-
-				::Sleep(TIMEOUT_MS - overTime);
-				idealTime += TIMEOUT_MS;
-				overTime = timeGetTime() - idealTime;
-				if (overTime >= TIMEOUT_MS)
-				{
-					overTime = TIMEOUT_MS;
-				}
-
 			}
+
+			// 순회하면서 Disconnect까지 해버리면 OnDisconnect에서 Lock을 또 잡아서 DeadLock이 발생할 수 있다.
+			// 따라서 DisconnectList에 넣어놓고 나중에 Disconnect를 호출한다.
+			for (uint64 sessionId : disconnectList)
+			{
+				Disconnect(sessionId);
+			}
+
+			::Sleep(1000);
 		}
 	}
-	//
-	// void LoginServer::func_monitor_thread()
-	// {
-	// 	DWORD idealTime = timeGetTime();
-	// 	DWORD overTime = 0;
-	// 	uint64 prevAuthCount = 0;
-	// 	ProcessMonitor monitor;
-	// 	while (true)
-	// 	{
-	// 		monitor.Update();
-	// 		time_t timeStamp;
-	// 		time(&timeStamp);
-	// 		uint64 authCount = GetAuthCount();
-	// 		_monitoringClient->SendPacket(make_SS_MONITOR_DATA_UPDATE(MONITOR_DATA_TYPE_LOGIN_SERVER_RUN, 1, timeStamp));
-	//
-	// 		_monitoringClient->SendPacket(
-	// 			make_SS_MONITOR_DATA_UPDATE(MONITOR_DATA_TYPE_LOGIN_SERVER_CPU, monitor.GetTotalCpuUsage(), timeStamp)
-	// 		);
-	//
-	// 		_monitoringClient->SendPacket(
-	// 			make_SS_MONITOR_DATA_UPDATE(MONITOR_DATA_TYPE_LOGIN_SERVER_MEM, monitor.GetPrivateMemoryUsage() / 1000000, timeStamp)
-	// 		);
-	//
-	// 		_monitoringClient->SendPacket(
-	// 			make_SS_MONITOR_DATA_UPDATE(MONITOR_DATA_TYPE_LOGIN_SESSION, GetSessionCount(), timeStamp)
-	// 		);
-	//
-	// 		_monitoringClient->SendPacket(
-	// 			make_SS_MONITOR_DATA_UPDATE(MONITOR_DATA_TYPE_LOGIN_AUTH_TPS, authCount - prevAuthCount, timeStamp)
-	// 		);
-	//
-	// 		_monitoringClient->SendPacket(
-	// 			make_SS_MONITOR_DATA_UPDATE(MONITOR_DATA_TYPE_LOGIN_PACKET_POOL, Packet::GetUseCount(), timeStamp)
-	// 		);
-	//
-	// 		prevAuthCount = authCount;
-	//
-	// 		::Sleep(1000 - overTime);
-	// 		idealTime += 1000;
-	// 		overTime = timeGetTime() - idealTime;
-	// 		if (overTime >= 1000)
-	// 		{
-	// 			overTime = 1000;
-	// 		}
-	// 	}
-	// }
-
 }
 

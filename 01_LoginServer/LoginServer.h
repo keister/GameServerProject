@@ -4,10 +4,6 @@
 #include "ObjectPoolTls.h"
 #include "ServerBase.h"
 #include "Common/Token.h"
-class MonitoringClient;
-using SQLSession = mysqlx::Session;
-using RedisSession = RedisCpp::CRedisConn;
-
 
 namespace login
 {
@@ -18,14 +14,14 @@ namespace login
 		enum
 		{
 			NUM_OF_USER_MAP = 128,
-			TIMEOUT_MS = 50000,
+			TIMEOUT_MS = 10000,
 		};
 
 	public:
-		LoginServer(const wstring& name);
+		LoginServer(const json& setting);
 		~LoginServer() override;
 
-		uint64 GetAuthCount() { return _authCount; }
+		uint64 GetAuthCount() const { return _authCount; }
 
 	protected:
 		void OnStart() override;
@@ -36,46 +32,39 @@ namespace login
 		void OnRecv(uint64 sessionId, Packet pkt) override;
 
 		//@@@AutoPackBegin
+
 		friend bool HandlePacket_LoginServer(LoginServer*, Player&, Packet);
+
 		void Handle_C_REQ_LOGIN(Player& player, int64 accountNo, Token& token);
 		void Handle_C_GET_SERVER_LIST(Player& player);
 
 		//@@@AutoPackEnd
 
 	private:
-		Player* find_user(uint64 sessionId);
-		void delete_user(uint64 sessionId);
-		void insert_user(uint64 sessionId, const NetworkAddress& netinfo);
+		Player* find_player(uint64 sessionId);
+		void	delete_player(uint64 sessionId);
+		void	insert_player(uint64 sessionId);
+		bool	set_token(uint64 accountNo, const Token& token);
 
-		//static Packet& make_SS_MONITOR_DATA_UPDATE(BYTE dataType, int32 dataValue, int32 timeStamp);
+		void	func_timeout_thread();
 
 
-		SQLSession& get_sql_session();
-		RedisSession& get_redis_session();
-
-		bool set_token(uint64 accountNo, const Token& token);
-
-		void func_timeout_thread();
-		void func_monitor_thread();
 	private:
-		unordered_map<uint64, Player*> _userMap[NUM_OF_USER_MAP];
-		Lock						 _mapLock[NUM_OF_USER_MAP];
+		//typedef
+		using PlayerMapType		= unordered_map<uint64, Player*>;
+		using PlayerAllocator	= ObjectPoolTls<Player, false>;
+		using RedisSession		= RedisCpp::CRedisConn;
 
-		uint64						_authCount;
+		PlayerMapType	_playerMap[NUM_OF_USER_MAP]; ///< 플레이어 관리하는 MAP
+		Lock			_mapLock[NUM_OF_USER_MAP];
 
-		vector<wstring>				_gameServerIps;
-		vector<uint16>				_gameServerPorts;
-		vector<wstring>				_chatServerIps;
-		vector<uint16>				_chatServerPorts;
+		uint64			_authCount;					 ///< 누적 인증 횟수
 
-		DWORD						 _dbConnectionTlsIndex;
-		DWORD						 _redisConnectionTlsIndex;
-		RedisSession* _redis;
-		Lock						 _lockRedis;
-		ObjectPoolTls<Player, false>	 _userPool;
-		MonitoringClient* _monitoringClient;
+		vector<uint16>	_gameServerPorts;
 
-		HANDLE _monitorThread;
+		RedisSession*	_redis;
+		Lock			_lockRedis;
+		PlayerAllocator	_playerAllocator;
 	};
 
 

@@ -11,5 +11,6 @@
 using json = nlohmann::json;
 using Position = Eigen::Vector2<float32>;
 using namespace std;
+using namespace netlib;
 
 //#define PROFILE

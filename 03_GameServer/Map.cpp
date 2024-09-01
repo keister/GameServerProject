@@ -6,7 +6,7 @@
 #include "GameObject.h"
 #include "MapData.h"
 
-Map::Map(GameGroupBase* group, const char* fileName, int32 sectorWidth, int32 sectorHeight)
+game::Map::Map(GameGroupBase* group, const char* fileName, int32 sectorWidth, int32 sectorHeight)
 	: _mapData(new MapData(fileName))
 	, _sectorWidth(sectorWidth)
 	, _sectorHeight(sectorHeight)
@@ -28,18 +28,18 @@ Map::Map(GameGroupBase* group, const char* fileName, int32 sectorWidth, int32 se
 	{
 		for (int32 x = 0; x < _sectorMaxX; x++)
 		{
-			SetAroundSectors(y, x);
+			set_around_sectors(y, x);
 		}
 	}
 }
 
 
-const TileInfo& Map::GetTileInfo(const Position& pos)
+const game::TileInfo& game::Map::GetTileInfo(const Position& pos)
 {
 	return (*_mapData)[{(int32)pos.x(), (int32)pos.y()}];
 }
 
-Position Map::GetRandomPostionInSection(int32 id)
+Position game::Map::GetRandomPostionInSection(int32 id)
 {
 	auto& arr = _mapData->GetMovableTiles(id);
 
@@ -48,7 +48,7 @@ Position Map::GetRandomPostionInSection(int32 id)
 	return arr[idx];
 }
 
-void Map::SetAroundSectors(int32 y, int32 x)
+void game::Map::set_around_sectors(int32 y, int32 x)
 {
 
 	SectorInfo& info = _sectors[y][x];
@@ -72,7 +72,7 @@ void Map::SetAroundSectors(int32 y, int32 x)
 
 
 
-void Map::SendPacket(Sector* sector, int32 sectorRange, Packet pkt, list<uint64>& except)
+void game::Map::SendPacket(Sector* sector, int32 sectorRange, Packet pkt, list<uint64>& except)
 {
 	int32 currentSector = 1;
 
@@ -109,19 +109,19 @@ void Map::SendPacket(Sector* sector, int32 sectorRange, Packet pkt, list<uint64>
 	}
 }
 
-void Map::SendPacket(Sector* sector, int32 sectorRange, Packet pkt, uint64 except)
+void game::Map::SendPacket(Sector* sector, int32 sectorRange, Packet pkt, uint64 except)
 {
 	list list = { except };
 	SendPacket(sector, sectorRange, pkt, list);
 }
 
-void Map::SendPacket(Sector* sector, int32 sectorRange, Packet pkt)
+void game::Map::SendPacket(Sector* sector, int32 sectorRange, Packet pkt)
 {
 	list<uint64> list = {};
 	SendPacket(sector, sectorRange, pkt, list);
 }
 
-void Map::GetSectors(SectorList& list, int32 y, int32 x, int32 sectorRange)
+void game::Map::GetSectors(SectorList& list, int32 y, int32 x, int32 sectorRange)
 {
 
 	int32 currentSector = 1;
@@ -141,7 +141,20 @@ void Map::GetSectors(SectorList& list, int32 y, int32 x, int32 sectorRange)
 
 }
 
-void Sector::InsertObject(GameObject* obj)
+game::Sector* game::Map::FindSectorByPosition(int32 y, int32 x)
+{
+	int32 sectorY = y / _sectorHeight;
+	int32 sectorX = x / _sectorWidth;
+
+	return _sectors[sectorY][sectorX].sector;
+}
+
+const vector<game::Sector*>& game::Map::GetAroundSectors(Sector* sector)
+{
+	return _sectors[sector->pos.y][sector->pos.x].aroundSectors;
+}
+
+void game::Sector::InsertObject(GameObject* obj)
 {
 	const TypeInfo* info = obj->GetTypeInfo();
 
@@ -172,7 +185,7 @@ void Sector::InsertObject(GameObject* obj)
 
 }
 
-void Sector::EraseObject(GameObject* obj)
+void game::Sector::EraseObject(GameObject* obj)
 {
 	const TypeInfo* info = obj->GetTypeInfo();
 
@@ -192,3 +205,11 @@ void Sector::EraseObject(GameObject* obj)
 		info = info->super;
 	}
 }
+
+
+
+
+
+
+
+

@@ -48,7 +48,7 @@
     <ClCompile Include="DBJob.cpp">
       <Filter>DB</Filter>
     </ClCompile>
-    <ClCompile Include="GameGroup_Town.cpp">
+    <ClCompile Include="GameGroup.cpp">
       <Filter>Group</Filter>
     </ClCompile>
     <ClCompile Include="GameServer.cpp">
@@ -96,12 +96,6 @@
     <ClCompile Include="PathFindingWorker.cpp">
       <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="MonsterData.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="PathFindingTestObject.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
     <ClCompile Include="Route.cpp">
       <Filter>Util</Filter>
     </ClCompile>
@@ -128,7 +122,7 @@
     <ClInclude Include="DBJob.h">
       <Filter>DB</Filter>
     </ClInclude>
-    <ClInclude Include="GameGroup_Town.h">
+    <ClInclude Include="GameGroup.h">
       <Filter>Group</Filter>
     </ClInclude>
     <ClInclude Include="GameServer.h">
@@ -188,11 +182,11 @@
     <ClInclude Include="MonsterData.h">
       <Filter>Util</Filter>
     </ClInclude>
-    <ClInclude Include="PathFindingTestObject.h">
-      <Filter>Util</Filter>
-    </ClInclude>
     <ClInclude Include="Route.h">
       <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="PathFindingTestObject.h">
+      <Filter>Test</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

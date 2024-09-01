@@ -45,7 +45,7 @@ struct Token
 	// }
 };
 
-inline RawPacket& operator>> (RawPacket& pkt, Token& token)
+inline netlib::RawPacket& operator>> (netlib::RawPacket& pkt, Token& token)
 {
 	uint16 size = 0;
 	pkt >> size;
@@ -55,7 +55,7 @@ inline RawPacket& operator>> (RawPacket& pkt, Token& token)
 	return pkt;
 }
 
-inline RawPacket& operator<< (RawPacket& pkt, const Token& token)
+inline netlib::RawPacket& operator<< (netlib::RawPacket& pkt, const Token& token)
 {
 
 	uint16 size = token.token.size();

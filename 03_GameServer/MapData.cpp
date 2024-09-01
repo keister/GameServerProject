@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "MapData.h"
 
-MapData::MapData(const char* fileName)
+game::MapData::MapData(const char* fileName)
 {
 	ifstream f;
 	f.open(fileName, ios_base::binary | ios_base::in);

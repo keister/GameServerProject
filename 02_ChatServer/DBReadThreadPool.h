@@ -1,8 +1,17 @@
 #pragma once
-#include "Job.h"
-class Job;
+
+
+namespace netlib
+{
+	class Job;
+}
+
+
 namespace chat
 {
+
+	/// @brief DB읽기 작업을 비동기로 처리하기 위한 쓰레드풀
+	///		   C++의 쓰레드관련 함수를 통해 구현해보기
 	class DBReadThreadPool
 	{
 
@@ -40,6 +49,4 @@ namespace chat
 
 		bool					_isExit;
 	};
-
-	
 }

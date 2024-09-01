@@ -2,32 +2,40 @@
 #include "Job.h"
 #include "PathFinder.h"
 
-class Map;
-class Job;
-class PathReceiver;
-
-class PathFindingWorker
+namespace netlib
 {
-public:
-	PathFindingWorker(Map* map);
+	class Job;
+}
 
-	void ThreadFunc();
-	void RequestPathFinding(GameObject* gameObject, const Position& destination);
-	uint64 GetTotalPathFindingCount()
+namespace game
+{
+	class Map;
+	class PathReceiver;
+
+	/// @brief JPS 비동기 쓰레드. 하나의 맵에 하나씩 붙는다.
+	class PathFindingWorker
 	{
-		return _totalPathFindingCnt;
-	}
+	public:
+		PathFindingWorker(Map* map);
 
-private:
-	void ExecutePathFinding(GameObject* gameObject, uint64 objectId, const Position& destination, uint64 execCount);
+		void ThreadFunc();
+		void RequestPathFinding(GameObject* gameObject, const Position& destination);
+		uint64 GetTotalPathFindingCount()
+		{
+			return _totalPathFindingCnt;
+		}
 
-private:
-	Map*					_map;
-	std::condition_variable _cv;
-	std::mutex				_jobQueueLock;
-	std::queue<Job*>		_jobQueue;
-	PathFinder				_pathFinder;
-	bool					_isExit;
-	std::thread				_thread;
-	uint64					_totalPathFindingCnt;
-};
+	private:
+		void ExecutePathFinding(GameObject* gameObject, uint64 objectId, const Position& destination, uint64 execCount);
+
+	private:
+		Map* _map;
+		std::condition_variable _cv;
+		std::mutex				_jobQueueLock;
+		std::queue<Job*>		_jobQueue;
+		PathFinder				_pathFinder;
+		bool					_isExit;
+		std::thread				_thread;
+		uint64					_totalPathFindingCnt;
+	};
+}

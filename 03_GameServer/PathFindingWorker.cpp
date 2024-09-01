@@ -6,7 +6,7 @@
 #include "PathReceiver.h"
 #include "Route.h"
 
-PathFindingWorker::PathFindingWorker(Map* map)
+game::PathFindingWorker::PathFindingWorker(Map* map)
 	: _map(map)
 	, _pathFinder(map->GetData())
 	, _isExit(false)
@@ -14,7 +14,7 @@ PathFindingWorker::PathFindingWorker(Map* map)
 {
 }
 
-void PathFindingWorker::ThreadFunc()
+void game::PathFindingWorker::ThreadFunc()
 {
 	while (!_isExit)
 	{
@@ -24,20 +24,16 @@ void PathFindingWorker::ThreadFunc()
 			uniqueLock, [&] {return !_jobQueue.empty(); }
 		);
 
-		while (!_jobQueue.empty())
-		{
-			Job* job = _jobQueue.front();
-			job->Execute();
-			Job::Free(job);
-			_jobQueue.pop();
-		}
-
-
+		Job* job = _jobQueue.front();
+		_jobQueue.pop();
 		uniqueLock.unlock();
+
+		job->Execute();
+		Job::Free(job);
 	}
 }
 
-void PathFindingWorker::RequestPathFinding(GameObject* gameObject, const Position& destination)
+void game::PathFindingWorker::RequestPathFinding(GameObject* gameObject, const Position& destination)
 {
 
 
@@ -60,8 +56,8 @@ void PathFindingWorker::RequestPathFinding(GameObject* gameObject, const Positio
 	_cv.notify_one();
 }
 
-void PathFindingWorker::ExecutePathFinding(GameObject* gameObject, uint64 objectId, const Position& destination,
-	uint64 execCount)
+void game::PathFindingWorker::ExecutePathFinding(GameObject* gameObject, uint64 objectId, const Position& destination,
+                                                 uint64 execCount)
 {
 
 	Position start = gameObject->position;
@@ -82,5 +78,5 @@ void PathFindingWorker::ExecutePathFinding(GameObject* gameObject, uint64 object
 		});
 
 	_map->_group->EnqueueJob(job);
-	
+
 }

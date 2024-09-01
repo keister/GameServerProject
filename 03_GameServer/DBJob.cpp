@@ -3,7 +3,7 @@
 
 #include "SqlSession.h"
 
-void DBJob::CreateCharacter::Execute()
+void game::DBJob::CreateCharacter::Execute()
 {
 	mysqlx::Schema sch = GetSqlSession().getSchema("game");
 

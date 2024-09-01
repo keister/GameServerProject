@@ -9,6 +9,8 @@
 #include "Common/PacketDefine.h"
 #include "Common/Token.h"
 
+
+
 namespace login
 {
 	bool HandlePacket_LoginServer(LoginServer* server, Player& player, Packet pkt)
@@ -48,13 +50,14 @@ namespace login
 
 		return pkt;
 	}
-	Packet Make_S_GET_SERVER_LIST(const vector<wstring>& gameServerIps, const vector<uint16>& gameServerPorts)
+	Packet Make_S_GET_SERVER_LIST(const vector<uint16>& gameServerPorts)
 	{
 		Packet pkt = Packet::Alloc();
 
 		*pkt << PacketType::S_GET_SERVER_LIST;
-		*pkt << gameServerIps << gameServerPorts;
+		*pkt << gameServerPorts;
 
 		return pkt;
 	}
 }
+

@@ -10,7 +10,7 @@
     <ClCompile Include="LoginServer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
-    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="SqlSession.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
@@ -19,6 +19,7 @@
     <ClInclude Include="LoginServer.h" />
     <ClInclude Include="PacketHandler.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="SqlSession.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -63,7 +64,7 @@
       <Optimization>Disabled</Optimization>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(SolutionDir)Libs\MySQL\include\;D:\Portfolio\ServerLibrary;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Libs\MySQL\include\;$(SolutionDir)00_ServerLibrary\;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
     </ClCompile>
     <Link>

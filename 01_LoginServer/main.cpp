@@ -1,23 +1,19 @@
 #include "stdafx.h"
 #include "CrashDump.h"
-#include "ServerConfig.h"
 
 #include "LoginServer.h" 
 #include "Profiler.h"
 #include "Packet.h"
+#include "common/AppSettings.h"
 CrashDump cd;
 
 using namespace login;
 
 int main()
 {
-
-
-	ServerConfig::AddPath(L"../ServerConfig.ini");
-
 	SET_LOG_LEVEL(LogLevel::DBG);
 
-	LoginServer server(L"LoginServer");
+	LoginServer server(AppSettings::GetSection("LoginServer"));
 
 	uint64 prevAuthCount = 0;
 	uint64 prevAcceptCount = 0;

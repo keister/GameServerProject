@@ -7,12 +7,12 @@
 #include "Route.h"
 
 
-void GameGroupBase::SetServer(GameServer* server)
+void game::GameGroupBase::SetServer(GameServer* server)
 {
 	_server = server;
 }
 
-bool GameGroupBase::CreateMap(const char* fileName, int32 sectorWidth, int32 sectorHeight)
+bool game::GameGroupBase::CreateMap(const char* fileName, int32 sectorWidth, int32 sectorHeight)
 {
 	if (_map != nullptr)
 		return false;
@@ -23,7 +23,7 @@ bool GameGroupBase::CreateMap(const char* fileName, int32 sectorWidth, int32 sec
 	return true;
 }
 
-void GameGroupBase::ReleaseFixedObject(FixedObject* object)
+void game::GameGroupBase::ReleaseFixedObject(FixedObject* object)
 {
 	if (object->_doPooling == true)
 	{
@@ -35,13 +35,15 @@ void GameGroupBase::ReleaseFixedObject(FixedObject* object)
 	}
 }
 
-void GameGroupBase::PathFindingCompletionRoutine(GameObject* gameObject, uint64 objectId, uint64 execCount, Route& route)
+void game::GameGroupBase::PathFindingCompletionRoutine(GameObject* gameObject, uint64 objectId, uint64 execCount, Route& route)
 {
+	/// 요청한 객체가 파괴되었으면 무시
 	if (gameObject->ObjectId() != objectId)
 	{
 		return;
 	}
 
+	/// 가장 최신의 결과만 반영함
 	if (gameObject->_foundPath.ExecutionCount() != execCount)
 	{
 		return;
@@ -50,11 +52,9 @@ void GameGroupBase::PathFindingCompletionRoutine(GameObject* gameObject, uint64 
 	gameObject->GetPathReciever().GetRoute().Move(route);
 	gameObject->GetPathReciever().ResetCurrentTargetPosition();
 	gameObject->OnPathFindingCompletion();
-	
-
 }
 
-void GameGroupBase::ReleaseObject(GameObject* object)
+void game::GameGroupBase::ReleaseObject(GameObject* object)
 {
 	object->_sector->EraseObject(object);
 
@@ -68,7 +68,7 @@ void GameGroupBase::ReleaseObject(GameObject* object)
 	}
 }
 
-Player* GameGroupBase::find_player(uint64 sessionId)
+game::Player* game::GameGroupBase::FindPlayer(uint64 sessionId)
 {
 	auto findIt = _players.find(sessionId);
 
@@ -80,23 +80,23 @@ Player* GameGroupBase::find_player(uint64 sessionId)
 	return findIt->second;
 }
 
-void GameGroupBase::insert_player(Player* player)
+void game::GameGroupBase::InsertPlayer(Player* player)
 {
 	_players.insert({ player->SessionId(), player });
 }
 
-void GameGroupBase::delete_player(uint64 sessionId)
+void game::GameGroupBase::DeletePlayer(uint64 sessionId)
 {
 	_players.erase(sessionId);
 }
 
 
-void GameGroupBase::SendPacket(uint64 sessionId, Packet pkt)
+void game::GameGroupBase::SendPacket(uint64 sessionId, Packet pkt)
 {
 	GroupBase::SendPacket(sessionId, pkt);
 }
 
-void GameGroupBase::SendPacket(Sector* sector, int32 sectorRange, Packet pkt)
+void game::GameGroupBase::SendPacket(Sector* sector, int32 sectorRange, Packet pkt)
 {
 	if (_map == nullptr)
 	{
@@ -106,7 +106,7 @@ void GameGroupBase::SendPacket(Sector* sector, int32 sectorRange, Packet pkt)
 	_map->SendPacket(sector, sectorRange, pkt);
 }
 
-void GameGroupBase::SendPacket(Sector* sector, int32 sectorRange, Packet pkt, uint64 except)
+void game::GameGroupBase::SendPacket(Sector* sector, int32 sectorRange, Packet pkt, uint64 except)
 {
 	if (_map == nullptr)
 	{
@@ -116,7 +116,7 @@ void GameGroupBase::SendPacket(Sector* sector, int32 sectorRange, Packet pkt, ui
 	_map->SendPacket(sector, sectorRange, pkt, except);
 }
 
-void GameGroupBase::SendPacket(Sector* sector, int32 sectorRange, Packet pkt, list<uint64>& exceptSession)
+void game::GameGroupBase::SendPacket(Sector* sector, int32 sectorRange, Packet pkt, list<uint64>& exceptSession)
 {
 	if (_map == nullptr)
 	{
@@ -126,7 +126,7 @@ void GameGroupBase::SendPacket(Sector* sector, int32 sectorRange, Packet pkt, li
 	_map->SendPacket(sector, sectorRange, pkt, exceptSession);
 }
 
-void GameGroupBase::DestroyObject(GameObject* object)
+void game::GameGroupBase::DestroyObject(GameObject* object)
 {
 	object->_isDestroy = true;
 	list<GameHost*> other;
@@ -140,23 +140,26 @@ void GameGroupBase::DestroyObject(GameObject* object)
 	_removeObjects.push_back(object);
 }
 
-void GameGroupBase::DestroyFixedObject(FixedObject* object)
+void game::GameGroupBase::DestroyFixedObject(FixedObject* object)
 {
 	object->_isDestroy = true;
 	_removefixedObjects.push_back(object);
 }
 
-void GameGroupBase::Invoke(BaseObject* object, function<void()>&& func, DWORD afterTick)
+/// @brief 일정 시간이후에 함수호출을 예약함. 해당오브젝트가 삭제되면 무시된다.
+void game::GameGroupBase::Invoke(BaseObject* object, function<void()>&& func, DWORD afterTick)
 {
 	_timerEventQueue.push(TimerEvent{ CurrentTick() + afterTick, func, object, object->ObjectId() });
 }
 
-void GameGroupBase::Invoke(BaseObject* object, function<void()>&& func, float32 afterTime)
+/// @brief 일정 시간이후에 함수호출을 예약함. 해당오브젝트가 삭제되면 무시된다.
+void game::GameGroupBase::Invoke(BaseObject* object, function<void()>&& func, float32 afterTime)
 {
 	_timerEventQueue.push(TimerEvent{ CurrentTick() + (int32)(afterTime * 1000), func, object, object->ObjectId() });
 }
 
-Sector* GameGroupBase::FindSectorByPostion(float32 x, float32 y)
+/// @brief 현재 좌표를 기준으로 속한 섹터를 찾는다.
+game::Sector* game::GameGroupBase::FindSectorByPostion(float32 x, float32 y)
 {
 	if (_map == nullptr)
 	{
@@ -169,10 +172,10 @@ Sector* GameGroupBase::FindSectorByPostion(float32 x, float32 y)
 	return _map->GetSector(sectorY, sectorX);
 }
 
-void GameGroupBase::OnEnter(uint64 sessionId)
+void game::GameGroupBase::OnEnter(uint64 sessionId)
 {
 	Player* player = _server->GetHost<Player>(sessionId);
-	insert_player(player);
+	InsertPlayer(player);
 	OnPlayerEnter(*player);
 
 	list<GameHost*> my{ player };
@@ -182,7 +185,6 @@ void GameGroupBase::OnEnter(uint64 sessionId)
 	if (playerObject == nullptr)
 		return;
 
-	// 
 	playerObject->ExecuteForEachObject<GameObject>(AROUND,
 		[&player, &my](GameObject* go)
 		{
@@ -196,9 +198,9 @@ void GameGroupBase::OnEnter(uint64 sessionId)
 
 }
 
-void GameGroupBase::OnLeave(uint64 sessionId)
+void game::GameGroupBase::OnLeave(uint64 sessionId)
 {
-	Player* player = find_player(sessionId);
+	Player* player = FindPlayer(sessionId);
 
 	if (player == nullptr)
 	{
@@ -206,10 +208,10 @@ void GameGroupBase::OnLeave(uint64 sessionId)
 	}
 
 	OnPlayerLeave(*player);
-	delete_player(sessionId);
+	DeletePlayer(sessionId);
 }
 
-void GameGroupBase::UpdateFrame()
+void game::GameGroupBase::UpdateFrame()
 {
 	process_timer_event();
 
@@ -248,7 +250,7 @@ void GameGroupBase::UpdateFrame()
 
 
 }
-void GameGroupBase::process_timer_event()
+void game::GameGroupBase::process_timer_event()
 {
 	while (_timerEventQueue.size() > 0)
 	{

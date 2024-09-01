@@ -6,7 +6,7 @@
 #include "PathReceiver.h"
 
 
-const vector<TilePos> PathFinder::UNIT_VECTOR{
+const vector<game::TilePos> game::PathFinder::UNIT_VECTOR{
 		TilePos{  0,  1 },
 		TilePos{ -1,  1 },
 		TilePos{ -1,  0 },
@@ -17,7 +17,7 @@ const vector<TilePos> PathFinder::UNIT_VECTOR{
 		TilePos{  1,  1 }
 };
 
-pair<PathFinder::Direction, PathFinder::Direction> PathFinder::Split(Direction dir)
+pair<game::PathFinder::Direction, game::PathFinder::Direction> game::PathFinder::Split(Direction dir)
 {
 	if ((int)dir & 2 == 0)
 	{
@@ -27,7 +27,7 @@ pair<PathFinder::Direction, PathFinder::Direction> PathFinder::Split(Direction d
 	return make_pair((Direction)(((int)dir + 7) % 8), (Direction)(((int)dir + 1) % 8));
 }
 
-bool PathFinder::IsObstacleBetween(const TilePos& start, const TilePos& end)
+bool game::PathFinder::IsObstacleBetween(const TilePos& start, const TilePos& end)
 {
 	TilePos diff = end - start;
 	int32 unitX = (diff.x() > 0) ? 1 : (diff.x() < 0) ? -1 : 0;
@@ -81,7 +81,7 @@ bool PathFinder::IsObstacleBetween(const TilePos& start, const TilePos& end)
 	return false;
 }
 
-Route PathFinder::Execute(const Position& start, const Position& destination)
+game::Route game::PathFinder::Execute(const Position& start, const Position& destination)
 {
 	Route ret = Route::empty();
 
@@ -111,7 +111,7 @@ Route PathFinder::Execute(const Position& start, const Position& destination)
 	return ret;
 }
 
-bool PathFinder::IsInRange(const TilePos& pos)
+bool game::PathFinder::IsInRange(const TilePos& pos)
 {
 	if (pos.y() < _minHeight || pos.y() >= _maxHeight || pos.x() < _minWidth || pos.x() >= _maxWidth)
 	{
@@ -121,7 +121,7 @@ bool PathFinder::IsInRange(const TilePos& pos)
 	return true;
 }
 
-void PathFinder::Update(TileNode* node)
+void game::PathFinder::Update(TileNode* node)
 {
 	uint8 curDirection = 1;
 
@@ -148,12 +148,13 @@ void PathFinder::Update(TileNode* node)
 				continue;
 			}
 
+			// 오픈리스트 갱신
 			UpdateOpenList(pos, node, dirFlag);
 		}
 	}
 }
 
-bool PathFinder::CheckTile(const TilePos& pos, Direction dir)
+bool game::PathFinder::CheckTile(const TilePos& pos, Direction dir)
 {
 	TilePos next = pos + UNIT_VECTOR[(int)dir];
 
@@ -171,7 +172,7 @@ bool PathFinder::CheckTile(const TilePos& pos, Direction dir)
 	return false;
 }
 
-uint8 PathFinder::SearchDiagonal(const TilePos& pos, Direction dir, TilePos* nodePoint)
+uint8 game::PathFinder::SearchDiagonal(const TilePos& pos, Direction dir, TilePos* nodePoint)
 {
 	TilePos now{ pos + UNIT_VECTOR[(int)dir] };
 
@@ -185,7 +186,6 @@ uint8 PathFinder::SearchDiagonal(const TilePos& pos, Direction dir, TilePos* nod
 		}
 		auto splitDir = Split(dir);
 
-		// TODO: 대각선 범위체크
 		if ((*_mapData)[now] == TileInfo::OBSTACLE)
 		{
 			return NO_ROUTE;
@@ -240,7 +240,7 @@ uint8 PathFinder::SearchDiagonal(const TilePos& pos, Direction dir, TilePos* nod
 	}
 }
 
-uint8 PathFinder::SearchOrthogonal(const TilePos& pos, Direction dir, TilePos* nodePoint)
+uint8 game::PathFinder::SearchOrthogonal(const TilePos& pos, Direction dir, TilePos* nodePoint)
 {
 	TilePos now{ pos + UNIT_VECTOR[(int)dir] };
 
@@ -292,7 +292,7 @@ uint8 PathFinder::SearchOrthogonal(const TilePos& pos, Direction dir, TilePos* n
 	}
 }
 
-void PathFinder::UpdateOpenList(const TilePos& pos, TileNode* parent, uint8 flag)
+void game::PathFinder::UpdateOpenList(const TilePos& pos, TileNode* parent, uint8 flag)
 {
 	if (_closeNode.contains(pos))
 	{
@@ -328,7 +328,7 @@ void PathFinder::UpdateOpenList(const TilePos& pos, TileNode* parent, uint8 flag
 	}
 }
 
-void PathFinder::StartRoutine(const Position& start, const Position& destination)
+void game::PathFinder::StartRoutine(const Position& start, const Position& destination)
 {
 	_destination = { (int)destination.x(), (int)destination.y() };
 	_start = { (int)(start.x() * (float32)_mapData->PrecisionWidth()), (int)(start.y() * (float32)_mapData->PrecisionHeight()) };
@@ -350,7 +350,7 @@ void PathFinder::StartRoutine(const Position& start, const Position& destination
 	_openNodeMap.insert(make_pair(_start, startNode));
 }
 
-void PathFinder::EndRoutine()
+void game::PathFinder::EndRoutine()
 {
 	for (TileNode* node : _openNode)
 	{
@@ -366,7 +366,8 @@ void PathFinder::EndRoutine()
 	_closeNode.clear();
 }
 
-Route PathFinder::CreateRoute(TileNode* endNode, const Position& destination)
+/// @brief 브레즌햄 알고리즘을 적용하여, 8방향이루어진 경로를 압축한다.
+game::Route game::PathFinder::CreateRoute(TileNode* endNode, const Position& destination)
 {
 	TileNode* curNode = endNode;
 	TileNode* nextTarget = curNode;
@@ -404,13 +405,3 @@ Route PathFinder::CreateRoute(TileNode* endNode, const Position& destination)
 
 	return ret;
 }
-
-TilePos PathFinder::FindNearMovableTile(const TilePos& position)
-{
-	TilePos ret;
-
-	int32 orthoSize = 1;
-
-	return ret;
-}
-

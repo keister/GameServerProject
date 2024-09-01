@@ -30,7 +30,6 @@
     @protocol S_GET_SERVER_LIST
     - 서버 목록 응답
     [
-        vector<wstring> gameServerIps
         vector<uint16>  gameServerPorts
     ]
 }
@@ -299,6 +298,31 @@
         float32 yaw
     ]
 
+    @protocol S_LEVEL_UP
+    - 레벨업
+    [
+        int32 level
+    ]
+
+    @protocol S_CHARACTER_DEATH
+    - 플레이어 사망
+    [
+        uint64 playerId
+    ]
+
+    @protocol C_CHARACTER_RESPAWN
+    - 플레이어 부활 요청
+    [
+
+    ]
+
+    @protocol S_CHARACTER_RESPAWN
+    - 플레이어 부활
+    [
+        uint64 playerId
+        int32 hp
+    ]
+
     @dto
     [
         @link S_GET_CHARACTER_LIST
@@ -358,6 +382,7 @@
         C_MOVE,
         C_SKILL,
         C_MOVE_FIELD,
+        C_CHARACTER_RESPAWN,
     ]
 }
 

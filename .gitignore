@@ -4,3 +4,5 @@ Build/
 Docs/html/
 Docs/latex/
 Obj/
+*.meta
+*.exe
